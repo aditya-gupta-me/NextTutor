@@ -1,0 +1,322 @@
+@import "tailwindcss";
+
+/* ========================================
+   TSearch Design System v3
+   Light only · Warm palette · Lora + DM Sans
+   Inspired by OpenNote's "Scholar-Minimal" aesthetic
+   ======================================== */
+
+:root {
+  /* Colors — Warm Light */
+  --bg-primary: #FAFAF8;
+  --bg-secondary: #F3F3F0;
+  --bg-tertiary: #EAEAE6;
+  --bg-white: #FFFFFF;
+  --text-primary: #1A1A1A;
+  --text-secondary: #555555;
+  --text-tertiary: #8C8C8C;
+  --border: #E5E5E0;
+  --accent: #2F80ED;
+  --accent-hover: #1B6DD4;
+  --accent-light: #EBF3FE;
+  --success: #0F7B5F;
+  --success-light: #E6F5F0;
+  --warning: #D97706;
+  --warning-light: #FEF9E7;
+  --error: #DC3545;
+  --error-light: #FDE8EA;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.09);
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+}
+
+/* Tailwind v4 theme tokens */
+@theme inline {
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-tertiary: var(--bg-tertiary);
+  --color-bg-white: var(--bg-white);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-light: var(--accent-light);
+  --color-success: var(--success);
+  --color-success-light: var(--success-light);
+  --color-warning: var(--warning);
+  --color-warning-light: var(--warning-light);
+  --color-error: var(--error);
+  --color-error-light: var(--error-light);
+  --font-sans: "DM Sans", "SuisseIntl", system-ui, sans-serif;
+  --font-serif: "Lora", "IowanOldStyle", Georgia, serif;
+}
+
+/* ========================================
+   Base
+   ======================================== */
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ========================================
+   Utilities
+   ======================================== */
+
+.transition-base {
+  transition: all 150ms ease-out;
+}
+
+.card-hover {
+  transition: box-shadow 200ms ease-out, transform 200ms ease-out;
+}
+
+.card-hover:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+}
+
+/* Glass navbar */
+.glass-nav {
+  background: rgba(250, 250, 248, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #2F80ED 0%, #6C5CE7 50%, #A66BF5 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Hero gradient — warm tint flowing into section */
+.hero-gradient {
+  background: linear-gradient(180deg,
+      #FAFAF8 0%,
+      #F3F3F0 50%,
+      #EBF3FE 100%);
+}
+
+/* Product mockup card */
+.mockup-card {
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+/* Testimonial quote */
+.testimonial-quote {
+  position: relative;
+  padding-left: 1.5rem;
+  border-left: 3px solid var(--accent);
+}
+
+/* Fade-in-up */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+/* Stagger children */
+.stagger-children>* {
+  opacity: 0;
+  animation: fadeInUp 0.55s ease-out forwards;
+}
+
+.stagger-children>*:nth-child(1) {
+  animation-delay: 0ms;
+}
+
+.stagger-children>*:nth-child(2) {
+  animation-delay: 120ms;
+}
+
+.stagger-children>*:nth-child(3) {
+  animation-delay: 240ms;
+}
+
+.stagger-children>*:nth-child(4) {
+  animation-delay: 360ms;
+}
+
+.stagger-children>*:nth-child(5) {
+  animation-delay: 480ms;
+}
+
+.stagger-children>*:nth-child(6) {
+  animation-delay: 600ms;
+}
+
+/* Gentle float for hero illustration */
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
+/* Form input */
+.form-input {
+  width: 100%;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-white);
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 150ms ease-out, box-shadow 150ms ease-out;
+}
+
+.form-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.form-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(47, 128, 237, 0.1);
+}
+
+/* Skeleton shimmer */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-secondary) 25%, var(--bg-tertiary) 50%, var(--bg-secondary) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-md);
+}
+
+/* Toast animations */
+@keyframes toast-enter {
+  0% {
+    opacity: 0;
+    transform: translateX(100%) scale(0.95);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes toast-exit {
+  0% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(40%) scale(0.92);
+  }
+}
+
+@keyframes wave {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  15% {
+    transform: rotate(14deg);
+  }
+
+  30% {
+    transform: rotate(-8deg);
+  }
+
+  45% {
+    transform: rotate(14deg);
+  }
+
+  60% {
+    transform: rotate(-4deg);
+  }
+
+  75% {
+    transform: rotate(10deg);
+  }
+
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+/* ── Google Places Autocomplete dropdown ── */
+.pac-container {
+  z-index: 99999 !important;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  margin-top: 4px;
+  font-family: var(--font-dm-sans), sans-serif;
+}
+
+.pac-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-top-color: var(--border);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.pac-item:hover {
+  background-color: var(--bg-secondary);
+}
+
+.pac-item-selected {
+  background-color: var(--bg-secondary);
+}
+
+.pac-matched {
+  font-weight: 600;
+  color: var(--text-primary);
+}
