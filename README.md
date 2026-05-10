@@ -43,8 +43,9 @@ A modern, full-stack tutor discovery platform built with **Next.js 16**, **Supab
 
 ### Installation
 
-`ash
+```bash
 git clone https://github.com/aditya-gupta-me/NextTutor.git
 cd NextTutor
 npm install
 cp .env.example .env.local
+```
