@@ -20,12 +20,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         .eq("slug", slug)
         .single();
 
-    if (!tutor) return { title: "Tutor Not Found — TSearch" };
+    if (!tutor) return { title: "Tutor Not Found — NextTutor" };
 
     const user = (tutor as unknown as { users: { full_name: string } }).users;
     return {
-        title: `${user.full_name} — ${(tutor.subjects as string[]).join(", ")} Tutor in ${tutor.city} | TSearch`,
-        description: `Book sessions with ${user.full_name}, a verified ${(tutor.subjects as string[]).join(", ")} tutor in ${tutor.city}. View ratings, FAQs, and pricing on TSearch.`,
+        title: `${user.full_name} — ${(tutor.subjects as string[]).join(", ")} Tutor in ${tutor.city} | NextTutor`,
+        description: `Book sessions with ${user.full_name}, a verified ${(tutor.subjects as string[]).join(", ")} tutor in ${tutor.city}. View ratings, FAQs, and pricing on NextTutor.`,
     };
 }
 

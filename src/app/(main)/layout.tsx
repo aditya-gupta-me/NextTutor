@@ -21,6 +21,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
 
     const role = profile?.role || "student";
     const name = profile?.full_name || "User";
+    const avatarUrl = profile?.avatar_url as string | null;
     const initials = name
         .split(" ")
         .map((n: string) => n[0])
@@ -91,8 +92,12 @@ export default async function MainLayout({ children }: { children: React.ReactNo
                 {/* User */}
                 <div className="px-4 py-4 border-t border-border">
                     <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent-light text-xs font-semibold text-accent">
-                            {initials}
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent-light text-xs font-semibold text-accent overflow-hidden">
+                            {avatarUrl ? (
+                                <img src={avatarUrl} alt={name} className="h-full w-full object-cover" />
+                            ) : (
+                                initials
+                            )}
                         </div>
                         <div className="flex-1 min-w-0">
                             <div className="text-sm font-medium text-text-primary truncate">
@@ -117,8 +122,12 @@ export default async function MainLayout({ children }: { children: React.ReactNo
                         <span className="font-serif">NextTutor</span>
                     </Link>
                     <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-light text-xs font-semibold text-accent">
-                            {initials}
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-light text-xs font-semibold text-accent overflow-hidden">
+                            {avatarUrl ? (
+                                <img src={avatarUrl} alt={name} className="h-full w-full object-cover" />
+                            ) : (
+                                initials
+                            )}
                         </div>
                     </div>
                 </header>

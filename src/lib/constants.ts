@@ -1,6 +1,6 @@
 /** App-wide constants */
 
-export const APP_NAME = "TSearch";
+export const APP_NAME = "NextTutor";
 
 export const SUBJECTS = [
     "Mathematics",

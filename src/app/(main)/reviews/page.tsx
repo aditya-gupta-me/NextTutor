@@ -2,8 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 
 export const metadata = {
-    title: "My Reviews — TSearch",
-    description: "View reviews on your TSearch profile.",
+    title: "My Reviews — NextTutor",
+    description: "View reviews on your NextTutor profile.",
 };
 
 export default async function ReviewsPage() {
