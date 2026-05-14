@@ -83,7 +83,7 @@ export default function SettingsPage() {
                         <button
                             onClick={handleLogout}
                             disabled={loggingOut}
-                            className="rounded-[var(--radius-md)] border border-error/30 px-4 py-2 text-sm font-medium text-error transition-base hover:bg-error-light disabled:opacity-50"
+                            className="rounded-[var(--radius-md)] border border-error/30 px-4 py-2 text-sm font-medium text-error transition-base hover:bg-error-light disabled:opacity-50 cursor-pointer"
                         >
                             {loggingOut ? "Logging out..." : "Log out"}
                         </button>
