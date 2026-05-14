@@ -1,104 +1,69 @@
-import { describe, it, expect } from "vitest";
-import { checkProfanity, validateReviewComment } from "../profanity";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { validateReviewComment } from "../profanity";
 
-// ─── checkProfanity ─────────────────────────────────────────────
-
-describe("checkProfanity", () => {
-    it("passes clean text through unchanged", () => {
-        const result = checkProfanity("This tutor explains concepts really well.");
-        expect(result.clean).toBe(true);
-        expect(result.matched).toHaveLength(0);
-        expect(result.severity).toBe("NONE");
-        expect(result.sanitized).toBe("This tutor explains concepts really well.");
+describe("validateReviewComment (Perspective API)", () => {
+    beforeEach(() => {
+        vi.unstubAllGlobals();
+        process.env.NEXT_PUBLIC_GOOGLE_PERSPECTIVE_API_KEY = "test-key";
     });
 
-    it("detects standard English profanity", () => {
-        const result = checkProfanity("This is bullshit");
-        expect(result.clean).toBe(false);
-        expect(result.matched).toContain("bullshit");
+    it("returns null for empty comments", async () => {
+        expect(await validateReviewComment("")).toBeNull();
+        expect(await validateReviewComment("   ")).toBeNull();
     });
 
-    it("catches leet-speak number substitutions", () => {
-        // a55hole is a common leet variant the library handles
-        const result = checkProfanity("You are an a55hole");
-        expect(result.clean).toBe(false);
-        expect(result.matched.length).toBeGreaterThan(0);
-    });
-
-    it("catches Hindi Roman script profanity", () => {
-        const result = checkProfanity("Ye ek chutiya teacher hai");
-        expect(result.clean).toBe(false);
-        expect(result.matched.length).toBeGreaterThan(0);
-    });
-
-    it("detects platform-specific blocked terms", () => {
-        const scam = checkProfanity("This tutor is a total scam");
-        expect(scam.clean).toBe(false);
-        expect(scam.matched).toContain("scam");
-
-        const fraud = checkProfanity("Complete fraud, avoid this tutor");
-        expect(fraud.clean).toBe(false);
-        expect(fraud.matched).toContain("fraud");
-    });
-
-    it("returns sanitized text with profane words masked", () => {
-        const result = checkProfanity("This is bullshit");
-        expect(result.sanitized).toContain("********");
-        expect(result.sanitized).not.toMatch(/bullshit/);
-    });
-
-    it("assigns higher severity when multiple profane words are found", () => {
-        // Single word → MILD
-        const mild = checkProfanity("This is bullshit");
-        expect(mild.severity).toBe("MILD");
-
-        // Two words → MODERATE
-        const moderate = checkProfanity("This is bullshit and a fraud");
-        expect(moderate.severity).toBe("MODERATE");
-    });
-
-    it("does not flag common safe words as profanity", () => {
-        const safeTexts = [
-            "The class was really helpful",
-            "I assume the next session is Tuesday",
-            "Great teaching assistance provided",
-        ];
-
-        for (const text of safeTexts) {
-            const result = checkProfanity(text);
-            expect(result.clean).toBe(true);
-        }
-    });
-});
-
-// ─── validateReviewComment ──────────────────────────────────────
-
-describe("validateReviewComment", () => {
-    it("returns null for a clean review", () => {
-        expect(
-            validateReviewComment("Amazing tutor! Explains physics concepts clearly.")
-        ).toBeNull();
-    });
-
-    it("rejects comments over 1000 characters", () => {
+    it("rejects comments over 1000 characters", async () => {
         const longComment = "a".repeat(1001);
-        expect(validateReviewComment(longComment)).toBe(
+        expect(await validateReviewComment(longComment)).toBe(
             "Comment must be under 1000 characters."
         );
     });
 
-    it("rejects reviews with any profanity (even single words)", () => {
-        // Now that we block ALL profanity, even a single word should fail
-        const error = validateReviewComment("The homework was bullshit but I learned a lot");
-        expect(error).toBe(
+    it("fails open (allows comment) if API key is missing", async () => {
+        delete process.env.NEXT_PUBLIC_GOOGLE_PERSPECTIVE_API_KEY;
+        // Mock fetch just in case, though it shouldn't be called
+        vi.stubGlobal("fetch", vi.fn());
+        
+        expect(await validateReviewComment("This is a test comment")).toBeNull();
+        expect(fetch).not.toHaveBeenCalled();
+    });
+
+    it("allows comments with toxicity <= 60%", async () => {
+        vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+            ok: true,
+            json: async () => ({
+                attributeScores: {
+                    TOXICITY: { summaryScore: { value: 0.59 } }
+                }
+            })
+        }));
+
+        expect(await validateReviewComment("This class was okay, but could be better.")).toBeNull();
+    });
+
+    it("rejects comments with toxicity > 60%", async () => {
+        vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+            ok: true,
+            json: async () => ({
+                attributeScores: {
+                    TOXICITY: { summaryScore: { value: 0.85 } }
+                }
+            })
+        }));
+
+        const result = await validateReviewComment("This teacher is absolute garbage.");
+        expect(result).toBe(
             "Please keep your review respectful and constructive. Remove any inappropriate language and try again."
         );
     });
 
-    it("rejects reviews with extreme/multiple profanity", () => {
-        const error = validateReviewComment("This teacher is absolute bullshit and a fraud");
-        expect(error).toBe(
-            "Please keep your review respectful and constructive. Remove any inappropriate language and try again."
-        );
+    it("fails open (allows comment) if the API returns an error", async () => {
+        vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+            ok: false,
+            status: 500
+        }));
+
+        // Should not block user if Google is down
+        expect(await validateReviewComment("This is a test comment")).toBeNull();
     });
 });

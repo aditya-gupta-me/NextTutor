@@ -1,93 +1,76 @@
 /**
- * Review content moderation layer.
- *
- * Uses `allprofanity` for detection — handles leet-speak (f#ck, a55),
- * Hindi Roman script (chutiya), and native Devanagari. Falls back to
- * a custom blocklist for platform-specific terms the library might miss.
- *
- * Detection runs on both client (instant feedback) and server (actions.ts)
- * so bypassing the UI doesn't skip validation.
+ * Review content moderation layer using Google Perspective API.
+ * 
+ * Uses ML to detect toxic language, insults, and profanity in review comments.
+ * It is highly effective at understanding context and catching subtle harassment,
+ * as well as obvious obfuscations (leet-speak).
  */
 
-import { AllProfanity, ProfanitySeverity } from "allprofanity";
+const DISCOVERY_URL = 'https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze';
 
-// ─── Filter setup ───────────────────────────────────────────────
-// Trie mode gives us fast prefix-tree matching (~27K ops/sec) with
-// context analysis to reduce false positives like "assume" or "class".
-// We avoid hybrid/Aho-Corasick because those pre-build their automaton
-// during construction and don't reliably pick up runtime .add() calls.
-
-import hinglishBadWords from "./hinglish-bad-words.json";
-
-// Platform-specific terms and Hindi Roman variations the library might miss.
-const CUSTOM_BLOCKED = [
-    "scam", "fraud", "cheat", "liar", "fake",
-    "ghatiya", "nalayak", "badtameez", "bewakoof",
-    ...hinglishBadWords
-];
-
-const filter = new AllProfanity({
-    languages: ["english", "hindi", "bengali", "tamil", "telugu"],
-    enableLeetSpeak: true,
-    caseSensitive: false,
-    strictMode: false,
-    silent: true,
-    performance: {
-        enableCaching: true,
-        cacheSize: 500,
-    },
-});
-
-filter.add(CUSTOM_BLOCKED);
-
-// ─── Public API ─────────────────────────────────────────────────
-
-export interface ProfanityResult {
-    clean: boolean;
-    matched: string[];
-    sanitized: string;
-    severity: "NONE" | "MILD" | "MODERATE" | "SEVERE" | "EXTREME";
-}
-
-/** Check text for profanity. Returns detection details and a sanitized version. */
-export function checkProfanity(text: string): ProfanityResult {
-    const result = filter.detect(text);
-
-    if (!result.hasProfanity) {
-        return {
-            clean: true,
-            matched: [],
-            sanitized: text,
-            severity: "NONE",
-        };
-    }
-
-    return {
-        clean: false,
-        matched: result.detectedWords,
-        sanitized: result.cleanedText,
-        severity: ProfanitySeverity[result.severity] as ProfanityResult["severity"],
-    };
-}
+// ─── Severity thresholds ────────────────────────────────────────
+// Any comment scoring above this toxicity threshold is blocked.
+// 0.60 (60%) catches obvious insults and severe profanity while
+// leaving room for mild, constructive criticism.
+const TOXICITY_THRESHOLD = 0.60;
 
 /**
- * Validate a review comment before submission.
+ * Validate a review comment before submission using Google Perspective API.
  * Returns null if the comment is acceptable, or an error message string.
  *
  * Policy:
  * - Over 1000 chars → reject
- * - ANY profanity → reject (The library's severity is based on word count, so even 1 severe slur is rated "MILD". We must block all.)
+ * - Toxicity > 60% → reject
+ * - API Failure → fail open (allow through) or log error
  */
-export function validateReviewComment(comment: string): string | null {
+export async function validateReviewComment(comment: string): Promise<string | null> {
+    if (!comment || !comment.trim()) return null;
+
     if (comment.length > 1000) {
         return "Comment must be under 1000 characters.";
     }
 
-    const result = checkProfanity(comment);
-
-    if (!result.clean) {
-        return "Please keep your review respectful and constructive. Remove any inappropriate language and try again.";
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PERSPECTIVE_API_KEY;
+    if (!apiKey) {
+        console.warn("Perspective API key missing. Skipping profanity check.");
+        return null;
     }
 
-    return null;
+    try {
+        const response = await fetch(`${DISCOVERY_URL}?key=${apiKey}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                // Optional: If running on server, we spoof Referer for restricted keys
+                ...(typeof window === 'undefined' && {
+                    'Referer': process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000/'
+                })
+            },
+            body: JSON.stringify({
+                comment: { text: comment },
+                // Let Google auto-detect language for better Hinglish support
+                requestedAttributes: {
+                    TOXICITY: {},
+                }
+            })
+        });
+
+        if (!response.ok) {
+            console.error(`Perspective API failed: ${response.status}`);
+            return null; // Fail open if the API goes down so we don't block core functionality
+        }
+
+        const data = await response.json();
+        const toxicityScore = data.attributeScores?.TOXICITY?.summaryScore?.value || 0;
+
+        if (toxicityScore > TOXICITY_THRESHOLD) {
+            return "Please keep your review respectful and constructive. Remove any inappropriate language and try again.";
+        }
+
+        return null;
+
+    } catch (error) {
+        console.error("Error calling Perspective API:", error);
+        return null; // Fail open
+    }
 }

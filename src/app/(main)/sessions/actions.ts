@@ -138,7 +138,7 @@ export async function submitReview(
     }
 
     // Profanity check
-    const commentError = validateReviewComment(comment);
+    const commentError = await validateReviewComment(comment);
     if (commentError) throw new Error(commentError);
 
     // Must be student

@@ -184,7 +184,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
 
         // Client-side profanity check
         if (reviewComment.trim()) {
-            const err = validateReviewComment(reviewComment);
+            const err = await validateReviewComment(reviewComment);
             if (err) { setReviewError(err); return; }
         }
 
