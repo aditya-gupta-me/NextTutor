@@ -233,6 +233,7 @@ Prefer semantic queries when possible — they catch accessibility issues for fr
 | Module | Tests | What's covered |
 |---|---|---|
 | `AvatarUpload` | 9 | Rendering, file validation, upload flow, removal, error handling |
+| `profanity` | 12 | Clean text, English/Hindi/leet-speak detection, custom terms, sanitization, severity, false-positive safety, validation policy |
 
 This table should be updated as new test files are added.
 
