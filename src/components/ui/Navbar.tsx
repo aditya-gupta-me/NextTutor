@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 
-export default function Navbar() {
+export default function Navbar({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     return (
@@ -43,18 +43,29 @@ export default function Navbar() {
 
                 {/* Desktop CTA */}
                 <div className="hidden items-center gap-3 md:flex">
-                    <Link
-                        href="/continue"
-                        className="rounded-[var(--radius-md)] px-4 py-2 text-sm font-medium text-text-secondary transition-base hover:bg-bg-tertiary hover:text-text-primary"
-                    >
-                        Log in
-                    </Link>
-                    <Link
-                        href="/continue"
-                        className="rounded-[var(--radius-md)] bg-accent px-4 py-2 text-sm font-medium text-white shadow-[var(--shadow-xs)] transition-base hover:bg-accent-hover hover:shadow-[var(--shadow-sm)]"
-                    >
-                        Get Started
-                    </Link>
+                    {isLoggedIn ? (
+                        <Link
+                            href="/dashboard"
+                            className="rounded-[var(--radius-md)] bg-accent px-4 py-2 text-sm font-medium text-white shadow-[var(--shadow-xs)] transition-base hover:bg-accent-hover hover:shadow-[var(--shadow-sm)]"
+                        >
+                            Open Dashboard
+                        </Link>
+                    ) : (
+                        <>
+                            <Link
+                                href="/continue"
+                                className="rounded-[var(--radius-md)] px-4 py-2 text-sm font-medium text-text-secondary transition-base hover:bg-bg-tertiary hover:text-text-primary"
+                            >
+                                Log in
+                            </Link>
+                            <Link
+                                href="/continue"
+                                className="rounded-[var(--radius-md)] bg-accent px-4 py-2 text-sm font-medium text-white shadow-[var(--shadow-xs)] transition-base hover:bg-accent-hover hover:shadow-[var(--shadow-sm)]"
+                            >
+                                Get Started
+                            </Link>
+                        </>
+                    )}
                 </div>
 
                 {/* Mobile hamburger */}
@@ -104,18 +115,29 @@ export default function Navbar() {
                             For Tutors
                         </Link>
                         <hr className="border-border" />
-                        <Link
-                            href="/continue"
-                            className="rounded-[var(--radius-md)] px-3 py-2 text-sm font-medium text-text-secondary transition-base hover:bg-bg-tertiary"
-                        >
-                            Log in
-                        </Link>
-                        <Link
-                            href="/continue"
-                            className="rounded-[var(--radius-md)] bg-accent px-3 py-2 text-center text-sm font-medium text-white transition-base hover:bg-accent-hover"
-                        >
-                            Get Started
-                        </Link>
+                        {isLoggedIn ? (
+                            <Link
+                                href="/dashboard"
+                                className="rounded-[var(--radius-md)] bg-accent px-3 py-2 text-center text-sm font-medium text-white transition-base hover:bg-accent-hover"
+                            >
+                                Open Dashboard
+                            </Link>
+                        ) : (
+                            <>
+                                <Link
+                                    href="/continue"
+                                    className="rounded-[var(--radius-md)] px-3 py-2 text-sm font-medium text-text-secondary transition-base hover:bg-bg-tertiary"
+                                >
+                                    Log in
+                                </Link>
+                                <Link
+                                    href="/continue"
+                                    className="rounded-[var(--radius-md)] bg-accent px-3 py-2 text-center text-sm font-medium text-white transition-base hover:bg-accent-hover"
+                                >
+                                    Get Started
+                                </Link>
+                            </>
+                        )}
                     </div>
                 </div>
             )}

@@ -1,16 +1,22 @@
 import Link from "next/link";
 import Navbar from "@/components/ui/Navbar";
 import Footer from "@/components/ui/Footer";
+import { createClient } from "@/lib/supabase/server";
 import {
     HeroProductPreview,
     TutorProfilePreview,
     SessionPreview,
 } from "@/components/illustrations/Illustrations";
 
-export default function Home() {
+export default async function Home() {
+    // Check if user is logged in to adapt CTAs
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const isLoggedIn = !!user;
+
     return (
         <>
-            <Navbar />
+            <Navbar isLoggedIn={isLoggedIn} />
 
             <main>
                 {/* ========== HERO ========== */}
@@ -42,10 +48,10 @@ export default function Home() {
                                         Find a Tutor
                                     </Link>
                                     <Link
-                                        href="/continue"
+                                        href={isLoggedIn ? "/dashboard" : "/continue"}
                                         className="w-full rounded-[var(--radius-full)] border border-border bg-bg-white px-7 py-3.5 text-center text-base font-medium text-text-primary shadow-[var(--shadow-xs)] transition-base hover:bg-bg-secondary sm:w-auto"
                                     >
-                                        I&apos;m a Tutor
+                                        {isLoggedIn ? "Go to Dashboard" : "I\u0027m a Tutor"}
                                     </Link>
                                 </div>
 
@@ -512,10 +518,10 @@ export default function Home() {
 
                                 <div className="mt-8 flex justify-center lg:justify-start">
                                     <Link
-                                        href="/continue"
+                                        href={isLoggedIn ? "/profile/edit" : "/continue"}
                                         className="rounded-[var(--radius-full)] bg-accent px-8 py-3.5 text-base font-medium text-white shadow-[var(--shadow-sm)] transition-base hover:bg-accent-hover hover:shadow-[var(--shadow-md)]"
                                     >
-                                        Create Your Free Profile →
+                                        {isLoggedIn ? "Edit Your Profile →" : "Create Your Free Profile →"}
                                     </Link>
                                 </div>
                             </div>
@@ -537,10 +543,10 @@ export default function Home() {
                         </p>
                         <div className="mt-8">
                             <Link
-                                href="/tutors"
+                                href={isLoggedIn ? "/profile" : "/tutors"}
                                 className="inline-block rounded-[var(--radius-full)] bg-accent px-8 py-3.5 text-base font-medium text-white shadow-[var(--shadow-sm)] transition-base hover:bg-accent-hover hover:shadow-[var(--shadow-md)]"
                             >
-                                Get Started for Free
+                                {isLoggedIn ? "Go to Profile" : "Get Started for Free"}
                             </Link>
                         </div>
                     </div>
