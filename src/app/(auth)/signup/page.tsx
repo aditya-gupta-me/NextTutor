@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -18,6 +18,15 @@ export default function SignupPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [emailSent, setEmailSent] = useState(false);
+    const [resendCooldown, setResendCooldown] = useState(0);
+    const [resendError, setResendError] = useState("");
+
+    // Countdown timer for resend button
+    useEffect(() => {
+        if (resendCooldown <= 0) return;
+        const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+        return () => clearTimeout(timer);
+    }, [resendCooldown]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -52,6 +61,7 @@ export default function SignupPage() {
                 });
                 if (authError) throw authError;
                 setEmailSent(true);
+                setResendCooldown(60);
             }
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : "Something went wrong");
@@ -75,12 +85,46 @@ export default function SignupPage() {
                     Click the link in the email to complete your signup. <br />
                     If you don&apos;t see it, check your spam folder.
                 </p>
-                <button
-                    onClick={() => setEmailSent(false)}
-                    className="mt-6 text-sm text-accent font-medium hover:underline"
-                >
-                    ← Use a different email
-                </button>
+
+                {resendError && (
+                    <div className="mt-4 rounded-[var(--radius-md)] bg-error-light border border-error/20 px-4 py-2.5 text-xs text-error">
+                        {resendError}
+                    </div>
+                )}
+
+                <div className="mt-6 flex flex-col items-center gap-3">
+                    <button
+                        onClick={async () => {
+                            setResendError("");
+                            try {
+                                const supabase = createClient();
+                                const { error: resendErr } = await supabase.auth.signInWithOtp({
+                                    email,
+                                    options: {
+                                        emailRedirectTo: `${window.location.origin}/auth/callback`,
+                                        data: { full_name: fullName, role },
+                                    },
+                                });
+                                if (resendErr) throw resendErr;
+                                setResendCooldown(60);
+                            } catch (err: unknown) {
+                                setResendError(err instanceof Error ? err.message : "Failed to resend. Try again.");
+                            }
+                        }}
+                        disabled={resendCooldown > 0}
+                        className="text-sm font-medium transition-base disabled:cursor-not-allowed disabled:text-text-tertiary text-accent hover:underline"
+                    >
+                        {resendCooldown > 0
+                            ? `Resend in ${resendCooldown}s`
+                            : "Resend verification email"}
+                    </button>
+                    <button
+                        onClick={() => { setEmailSent(false); setResendError(""); }}
+                        className="text-sm text-text-tertiary hover:text-text-secondary"
+                    >
+                        ← Use a different email
+                    </button>
+                </div>
             </div>
         );
     }
