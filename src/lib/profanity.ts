@@ -17,11 +17,13 @@ import { AllProfanity, ProfanitySeverity } from "allprofanity";
 // We avoid hybrid/Aho-Corasick because those pre-build their automaton
 // during construction and don't reliably pick up runtime .add() calls.
 
-// Platform-specific terms that users have tried in reviews but
-// aren't in standard profanity dictionaries. Update as needed.
+import hinglishBadWords from "./hinglish-bad-words.json";
+
+// Platform-specific terms and Hindi Roman variations the library might miss.
 const CUSTOM_BLOCKED = [
     "scam", "fraud", "cheat", "liar", "fake",
     "ghatiya", "nalayak", "badtameez", "bewakoof",
+    ...hinglishBadWords
 ];
 
 const filter = new AllProfanity({
@@ -37,15 +39,6 @@ const filter = new AllProfanity({
 });
 
 filter.add(CUSTOM_BLOCKED);
-
-// ─── Severity thresholds ────────────────────────────────────────
-// We don't treat every flagged word the same way:
-// - MILD (e.g. "damn", "crap") → allow but sanitize with ***
-// - MODERATE and above → block submission entirely
-//
-// This keeps reviews honest without over-censoring casual language.
-
-const BLOCK_THRESHOLD = ProfanitySeverity.MODERATE;
 
 // ─── Public API ─────────────────────────────────────────────────
 
@@ -83,8 +76,7 @@ export function checkProfanity(text: string): ProfanityResult {
  *
  * Policy:
  * - Over 1000 chars → reject
- * - MODERATE+ profanity → reject (slurs, explicit language)
- * - MILD profanity → allowed (gets sanitized on display if needed)
+ * - ANY profanity → reject (The library's severity is based on word count, so even 1 severe slur is rated "MILD". We must block all.)
  */
 export function validateReviewComment(comment: string): string | null {
     if (comment.length > 1000) {
@@ -93,7 +85,7 @@ export function validateReviewComment(comment: string): string | null {
 
     const result = checkProfanity(comment);
 
-    if (!result.clean && result.severity !== "MILD") {
+    if (!result.clean) {
         return "Please keep your review respectful and constructive. Remove any inappropriate language and try again.";
     }
 

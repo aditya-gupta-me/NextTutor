@@ -87,14 +87,15 @@ describe("validateReviewComment", () => {
         );
     });
 
-    it("allows through reviews with only mild profanity (single word)", () => {
-        // MILD severity should pass — keeps reviews honest without over-censoring
-        const result = validateReviewComment("The homework was bullshit but I learned a lot");
-        expect(result).toBeNull();
+    it("rejects reviews with any profanity (even single words)", () => {
+        // Now that we block ALL profanity, even a single word should fail
+        const error = validateReviewComment("The homework was bullshit but I learned a lot");
+        expect(error).toBe(
+            "Please keep your review respectful and constructive. Remove any inappropriate language and try again."
+        );
     });
 
-    it("rejects reviews with moderate or worse profanity", () => {
-        // Two profane words → MODERATE → blocked
+    it("rejects reviews with extreme/multiple profanity", () => {
         const error = validateReviewComment("This teacher is absolute bullshit and a fraud");
         expect(error).toBe(
             "Please keep your review respectful and constructive. Remove any inappropriate language and try again."
