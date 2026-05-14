@@ -53,9 +53,9 @@ export default async function MainLayout({ children }: { children: React.ReactNo
     }
 
     return (
-        <div className="min-h-screen bg-bg-primary flex">
+        <div className="h-[100dvh] bg-bg-primary flex overflow-hidden w-full">
             {/* Sidebar */}
-            <aside className="hidden md:flex w-[240px] flex-col border-r border-border bg-bg-white sticky top-0 h-screen overflow-y-auto">
+            <aside className="hidden md:flex w-[240px] flex-col border-r border-border bg-bg-white flex-shrink-0">
                 {/* Logo */}
                 <div className="px-5 py-5 border-b border-border">
                     <Link
@@ -70,7 +70,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
                 </div>
 
                 {/* Nav */}
-                <nav className="flex-1 px-3 py-4 space-y-1">
+                <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
                     <NavLink href="/dashboard" icon="bx bx-dashboard" label="Dashboard" />
                     <NavLink href="/profile" icon="bx bx-user" label="My Profile" />
                     {role === "student" && (
@@ -90,9 +90,9 @@ export default async function MainLayout({ children }: { children: React.ReactNo
                 </nav>
 
                 {/* User */}
-                <div className="px-4 py-4 border-t border-border">
+                <div className="px-4 py-4 border-t border-border shrink-0">
                     <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent-light text-xs font-semibold text-accent overflow-hidden">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent-light text-xs font-semibold text-accent overflow-hidden shrink-0">
                             {avatarUrl ? (
                                 <img src={avatarUrl} alt={name} className="h-full w-full object-cover" />
                             ) : (
@@ -110,8 +110,8 @@ export default async function MainLayout({ children }: { children: React.ReactNo
             </aside>
 
             {/* Mobile header */}
-            <div className="flex-1 flex flex-col">
-                <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-border bg-bg-white">
+            <div className="flex-1 flex flex-col min-w-0">
+                <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-border bg-bg-white shrink-0">
                     <Link
                         href="/"
                         className="inline-flex items-center gap-2 text-base font-bold text-text-primary"
@@ -122,7 +122,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
                         <span className="font-serif">NextTutor</span>
                     </Link>
                     <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-light text-xs font-semibold text-accent overflow-hidden">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-light text-xs font-semibold text-accent overflow-hidden shrink-0">
                             {avatarUrl ? (
                                 <img src={avatarUrl} alt={name} className="h-full w-full object-cover" />
                             ) : (
@@ -133,9 +133,9 @@ export default async function MainLayout({ children }: { children: React.ReactNo
                 </header>
 
                 {/* Mobile bottom nav */}
-                <main className="flex-1 overflow-auto">{children}</main>
+                <main className="flex-1 overflow-y-auto overflow-x-hidden">{children}</main>
 
-                <nav className="md:hidden flex items-center justify-around border-t border-border bg-bg-white py-2">
+                <nav className="md:hidden flex items-center justify-around border-t border-border bg-bg-white py-2 shrink-0 pb-safe">
                     <MobileNavLink href="/dashboard" icon="bx bx-dashboard" label="Home" />
                     <MobileNavLink
                         href="/sessions"

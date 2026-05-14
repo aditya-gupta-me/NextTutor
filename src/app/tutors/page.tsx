@@ -168,7 +168,7 @@ export default function TutorSearchPage() {
 
     return (
         <>
-            <Navbar />
+            <Navbar isLoggedIn={!isGuest} />
             <main className="pt-20 pb-16 md:pt-24">
                 <div className="mx-auto max-w-[1200px] px-6 md:px-12">
                     {/* Header */}

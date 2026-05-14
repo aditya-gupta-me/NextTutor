@@ -130,8 +130,8 @@ export default async function TutorProfilePage({ params }: PageProps) {
 
     return (
         <>
-            <Navbar />
-            <main className="min-h-screen bg-bg-primary">
+            <Navbar isLoggedIn={!!currentUser} />
+            <main className="min-h-screen bg-bg-primary pt-20">
                 <div className="mx-auto max-w-[720px] px-5 py-8 md:py-12">
                     {/* Breadcrumb */}
                     <div className="mb-6 flex items-center gap-2 text-sm text-text-tertiary">
