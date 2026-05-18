@@ -284,8 +284,7 @@ export default function ProfileEditPage() {
     const validateForm = (): string | null => {
         if (!fullName.trim()) return "Full name is required.";
         if (fullName.trim().length < 2) return "Full name must be at least 2 characters.";
-        if (userEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userEmail)) return "Please enter a valid email address.";
-        if (userPhone && !/^\+?[0-9]{10,13}$/.test(userPhone.replace(/\s/g, ""))) return "Please enter a valid phone number (10-13 digits).";
+        // Email and phone are read-only (sourced from Supabase Auth), no validation needed
 
         if (role === "student") {
             if (age && (parseInt(age) < 3 || parseInt(age) > 100)) return "Age must be between 3 and 100.";
@@ -322,8 +321,8 @@ export default function ProfileEditPage() {
                 .from("users")
                 .upsert({
                     id: user.id,
-                    email: userEmail || user.email || null,
-                    phone: userPhone || user.phone || null,
+                    email: user.email || null,
+                    phone: user.phone || null,
                     full_name: fullName.trim(),
                     role,
                     avatar_url: avatarUrl,
@@ -641,22 +640,22 @@ export default function ProfileEditPage() {
                                 <input
                                     type="email"
                                     value={userEmail}
-                                    onChange={(e) => setUserEmail(e.target.value)}
-                                    placeholder="you@example.com"
-                                    className="form-input !pl-10"
+                                    readOnly
+                                    className="form-input !pl-10 opacity-60 cursor-not-allowed bg-bg-secondary"
                                 />
                             </FormField>
                             <FormField label="Phone" icon="bx-phone">
                                 <input
                                     type="tel"
-                                    value={userPhone}
-                                    onChange={(e) => setUserPhone(e.target.value)}
-                                    placeholder="9876543210"
-                                    maxLength={13}
-                                    className="form-input !pl-10"
+                                    value={userPhone || "Not set"}
+                                    readOnly
+                                    className="form-input !pl-10 opacity-60 cursor-not-allowed bg-bg-secondary"
                                 />
                             </FormField>
                         </div>
+                        <p className="text-[11px] text-text-tertiary flex items-center gap-1 -mt-1">
+                            <i className="bx bx-lock-alt" /> Email and phone are linked to your login method and cannot be changed here.
+                        </p>
                         <FormField label="Gender" icon="bx-universal-access">
                             <select
                                 value={gender}
