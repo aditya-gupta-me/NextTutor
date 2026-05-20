@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import MobileHeader from "@/components/ui/MobileHeader";
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
     const supabase = await createClient();
@@ -111,26 +112,12 @@ export default async function MainLayout({ children }: { children: React.ReactNo
 
             {/* Mobile header */}
             <div className="flex-1 flex flex-col min-w-0">
-                <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-border bg-bg-white shrink-0">
-                    <Link
-                        href="/"
-                        className="inline-flex items-center gap-2 text-base font-bold text-text-primary"
-                    >
-                        <span className="flex h-7 w-7 items-center justify-center rounded-[var(--radius-sm)] bg-accent text-xs font-bold text-white">
-                            T
-                        </span>
-                        <span className="font-serif">NextTutor</span>
-                    </Link>
-                    <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-light text-xs font-semibold text-accent overflow-hidden shrink-0">
-                            {avatarUrl ? (
-                                <img src={avatarUrl} alt={name} className="h-full w-full object-cover" />
-                            ) : (
-                                initials
-                            )}
-                        </div>
-                    </div>
-                </header>
+                <MobileHeader
+                    avatarUrl={avatarUrl}
+                    name={name}
+                    initials={initials}
+                    role={role}
+                />
 
                 {/* Mobile bottom nav */}
                 <main className="flex-1 overflow-y-auto overflow-x-hidden">{children}</main>
