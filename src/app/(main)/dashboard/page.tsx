@@ -244,7 +244,7 @@ export default async function DashboardPage() {
                                 desc="View your session schedule"
                             />
                             <QuickAction
-                                href="/profile"
+                                href="/profile/edit"
                                 icon="bx bx-user"
                                 title="Edit Profile"
                                 desc="Update your details"
@@ -253,7 +253,7 @@ export default async function DashboardPage() {
                     ) : (
                         <>
                             <QuickAction
-                                href="/profile"
+                                href="/profile/edit"
                                 icon="bx bx-user"
                                 title="Edit Profile"
                                 desc="Update your tutor profile"
