@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { SUBJECTS, FAQ_TEMPLATES } from "@/lib/constants";
 import InlineAlert from "@/components/ui/InlineAlert";
@@ -10,6 +10,8 @@ import { useToast } from "@/components/ui/ToastContext";
 
 export default function ProfileEditPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const isOnboarding = searchParams.get("onboarding") === "true";
     const supabase = createClient();
     const toast = useToast();
     const [loading, setLoading] = useState(true);
@@ -295,6 +297,14 @@ export default function ProfileEditPage() {
         if (role === "tutor") {
             if (pincode && !/^[0-9]{6}$/.test(pincode)) return "Pincode must be exactly 6 digits.";
             if (tutorAge && (parseInt(tutorAge) < 18 || parseInt(tutorAge) > 100)) return "Tutor age must be between 18 and 100.";
+
+            // Onboarding mode: enforce essential fields for listing
+            if (isOnboarding) {
+                if (subjects.length === 0) return "Please select at least one subject you teach.";
+                if (!city) return "Please enter your city or use the location detector.";
+                if (!feePerMonth && !feePerSession) return "Please set at least one fee (monthly or per session).";
+                if (!address) return "Please enter your address so students can find you nearby.";
+            }
         }
 
         return null;
@@ -498,9 +508,9 @@ export default function ProfileEditPage() {
             toast.success("Profile saved successfully!");
             setError("");
 
-            // Redirect to view page
+            // Redirect after save
             setTimeout(() => {
-                router.push("/profile");
+                router.push(isOnboarding ? "/dashboard" : "/profile");
             }, 1500);
 
         } catch (err: unknown) {
@@ -546,7 +556,7 @@ export default function ProfileEditPage() {
         <div className="px-6 py-8 md:px-10 md:py-10 max-w-[760px]">
             <form onSubmit={handleSave}>
 
-                {/* ─── Hero Header Card (Same as View) ─── */}
+                {/* ─── Hero Header Card ─── */}
                 <div className="relative rounded-[var(--radius-xl)] border border-border bg-bg-white overflow-hidden mb-6">
                     {/* Gradient Banner */}
                     <div
@@ -589,10 +599,12 @@ export default function ProfileEditPage() {
                             <div className="flex-1 min-w-0 pb-1 flex justify-between items-end">
                                 <div>
                                     <h1 className="font-serif text-2xl font-bold text-text-primary md:text-3xl leading-tight">
-                                        Edit Profile
+                                        {isOnboarding ? "Set Up Your Profile" : "Edit Profile"}
                                     </h1>
                                     <p className="mt-1 text-sm text-text-secondary">
-                                        Update your details to be discovered
+                                        {isOnboarding
+                                            ? "Complete these details to get listed and start receiving students"
+                                            : "Update your details to be discovered"}
                                     </p>
                                 </div>
                                 <button
@@ -606,7 +618,7 @@ export default function ProfileEditPage() {
                                         </>
                                     ) : (
                                         <>
-                                            <i className="bx bx-save" /> Save Changes
+                                            <i className="bx bx-save" /> {isOnboarding ? "Save & Continue" : "Save Changes"}
                                         </>
                                     )}
                                 </button>
@@ -614,6 +626,15 @@ export default function ProfileEditPage() {
                         </div>
                     </div>
                 </div>
+
+                {/* ─── Onboarding Progress Tracker ─── */}
+                {isOnboarding && role === "tutor" && (
+                    <OnboardingProgress
+                        hasSubjects={subjects.length > 0}
+                        hasLocation={!!city && !!address}
+                        hasFee={!!(feePerMonth || feePerSession)}
+                    />
+                )}
 
                 {/* Feedback */}
                 {error && (
@@ -1080,6 +1101,65 @@ function FormField({
                     <i className={`bx ${icon} absolute left-3 top-1/2 -translate-y-1/2 text-lg text-text-tertiary pointer-events-none`} />
                 )}
                 {children}
+            </div>
+        </div>
+    );
+}
+
+function OnboardingProgress({
+    hasSubjects,
+    hasLocation,
+    hasFee,
+}: {
+    hasSubjects: boolean;
+    hasLocation: boolean;
+    hasFee: boolean;
+}) {
+    const steps = [
+        { label: "Subjects", done: hasSubjects, icon: "bx-book-open" },
+        { label: "Location", done: hasLocation, icon: "bx-map" },
+        { label: "Fee", done: hasFee, icon: "bx-rupee" },
+    ];
+    const completed = steps.filter((s) => s.done).length;
+
+    return (
+        <div className="rounded-[var(--radius-xl)] border border-border bg-bg-white p-5 mb-6">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                    <i className="bx bx-rocket text-lg text-accent" />
+                    <span className="text-sm font-semibold text-text-primary">
+                        Getting Started
+                    </span>
+                </div>
+                <span className="text-xs font-medium text-text-tertiary">
+                    {completed}/{steps.length} complete
+                </span>
+            </div>
+
+            {/* Progress bar */}
+            <div className="h-1.5 rounded-full bg-bg-secondary mb-4 overflow-hidden">
+                <div
+                    className="h-full rounded-full bg-accent transition-all duration-500 ease-out"
+                    style={{ width: `${(completed / steps.length) * 100}%` }}
+                />
+            </div>
+
+            {/* Steps */}
+            <div className="grid grid-cols-3 gap-3">
+                {steps.map((step) => (
+                    <div
+                        key={step.label}
+                        className={`flex items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-medium transition-all duration-300 ${
+                            step.done
+                                ? "bg-green-50 text-green-700 border border-green-200"
+                                : "bg-bg-secondary text-text-tertiary border border-transparent"
+                        }`}
+                    >
+                        <i className={`bx ${step.done ? "bx-check-circle text-green-500" : step.icon + " text-text-tertiary"} text-base`} />
+                        {step.label}
+                    </div>
+                ))}
             </div>
         </div>
     );

@@ -24,13 +24,31 @@ export async function GET(request: Request) {
                 // Check if user has completed onboarding
                 const { data: profile } = await supabase
                     .from("users")
-                    .select("full_name")
+                    .select("full_name, role")
                     .eq("id", user.id)
                     .maybeSingle();
 
                 // No profile or empty name → send to onboarding
                 if (!profile?.full_name || profile.full_name.trim() === "") {
                     return NextResponse.redirect(`${origin}/onboarding`);
+                }
+
+                // Tutor profile completeness gate — check if essential fields are filled
+                if (profile.role === "tutor") {
+                    const { data: tutorProfile } = await supabase
+                        .from("tutor_profiles")
+                        .select("subjects, city, location, fee_per_month, fee_per_session")
+                        .eq("user_id", user.id)
+                        .maybeSingle();
+
+                    const hasSubjects = tutorProfile?.subjects?.length > 0;
+                    const hasCity = !!tutorProfile?.city;
+                    const hasLocation = !!tutorProfile?.location;
+                    const hasFee = !!(tutorProfile?.fee_per_month || tutorProfile?.fee_per_session);
+
+                    if (!tutorProfile || !hasSubjects || !hasCity || !hasLocation || !hasFee) {
+                        return NextResponse.redirect(`${origin}/profile/edit?onboarding=true`);
+                    }
                 }
             }
 

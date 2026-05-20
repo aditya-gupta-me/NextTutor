@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 
 export default async function DashboardPage() {
@@ -15,6 +16,35 @@ export default async function DashboardPage() {
 
     const name = profile?.full_name || "there";
     const role = profile?.role || "student";
+
+    // ─── Tutor profile gate (server-side backup) ───
+    // Auth callback handles this on login, but this catches direct navigation
+    if (role === "tutor") {
+        const { data: tp } = await supabase
+            .from("tutor_profiles")
+            .select("subjects, city, location, fee_per_month, fee_per_session")
+            .eq("user_id", user!.id)
+            .maybeSingle();
+
+        const isComplete = tp
+            && tp.subjects?.length > 0
+            && !!tp.city
+            && !!tp.location
+            && !!(tp.fee_per_month || tp.fee_per_session);
+
+        if (!isComplete) redirect("/profile/edit?onboarding=true");
+    }
+
+    // ─── Student profile nudge ───
+    let showStudentNudge = false;
+    if (role === "student") {
+        const { data: sp } = await supabase
+            .from("student_profiles")
+            .select("city")
+            .eq("user_id", user!.id)
+            .maybeSingle();
+        showStudentNudge = !sp || !sp.city;
+    }
 
     // ─── Fetch live session stats ───
     let activePeople = 0;
@@ -152,6 +182,21 @@ export default async function DashboardPage() {
                     {role === "tutor" ? "tutoring" : "learning"}.
                 </p>
             </div>
+
+            {/* Student profile nudge */}
+            {showStudentNudge && (
+                <Link
+                    href="/profile/edit"
+                    className="flex items-center gap-4 rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 p-4 mb-8 transition-all hover:shadow-md hover:border-amber-300 group"
+                >
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-xl">📍</span>
+                    <div className="flex-1">
+                        <p className="text-sm font-semibold text-text-primary">Complete your profile</p>
+                        <p className="text-xs text-text-secondary">Add your location to find tutors near you</p>
+                    </div>
+                    <i className="bx bx-chevron-right text-xl text-text-tertiary group-hover:text-accent transition-colors" />
+                </Link>
+            )}
 
             {/* Stats cards */}
             <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 mb-8">
