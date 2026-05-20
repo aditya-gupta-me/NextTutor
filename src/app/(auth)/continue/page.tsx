@@ -57,6 +57,7 @@ export default function ContinuePage() {
                 });
                 if (authError) throw authError;
                 setEmailSent(true);
+                startCooldown();
             }
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : "Something went wrong");
@@ -65,19 +66,22 @@ export default function ContinuePage() {
         }
     };
 
-    // Resend magic link with cooldown
+    // Cooldown timer — synced with Supabase's SMTP minimum interval (60s)
     const [resendCooldown, setResendCooldown] = useState(0);
 
-    const handleResend = async () => {
+    const startCooldown = () => {
         setResendCooldown(60);
-        setError("");
-
         const timer = setInterval(() => {
             setResendCooldown((prev) => {
                 if (prev <= 1) { clearInterval(timer); return 0; }
                 return prev - 1;
             });
         }, 1000);
+    };
+
+    const handleResend = async () => {
+        startCooldown();
+        setError("");
 
         try {
             const supabase = createClient();
