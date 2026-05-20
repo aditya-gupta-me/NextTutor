@@ -65,6 +65,34 @@ export default function ContinuePage() {
         }
     };
 
+    // Resend magic link with cooldown
+    const [resendCooldown, setResendCooldown] = useState(0);
+
+    const handleResend = async () => {
+        setResendCooldown(60);
+        setError("");
+
+        const timer = setInterval(() => {
+            setResendCooldown((prev) => {
+                if (prev <= 1) { clearInterval(timer); return 0; }
+                return prev - 1;
+            });
+        }, 1000);
+
+        try {
+            const supabase = createClient();
+            const { error: authError } = await supabase.auth.signInWithOtp({
+                email,
+                options: {
+                    emailRedirectTo: `${window.location.origin}/auth/callback`,
+                },
+            });
+            if (authError) throw authError;
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "Failed to resend email.");
+        }
+    };
+
     // Email sent confirmation
     if (emailSent) {
         return (
@@ -81,9 +109,25 @@ export default function ContinuePage() {
                     Click the link in the email to continue. <br />
                     If you don&apos;t see it, check your spam folder.
                 </p>
+
+                {error && (
+                    <div className="mt-4">
+                        <InlineAlert variant="error" message={error} dismissible />
+                    </div>
+                )}
+
                 <button
-                    onClick={() => setEmailSent(false)}
-                    className="mt-6 text-sm text-accent font-medium hover:underline"
+                    onClick={handleResend}
+                    disabled={resendCooldown > 0}
+                    className="mt-6 w-full rounded-[var(--radius-md)] border border-border py-3 text-sm font-medium text-text-primary transition-base hover:bg-bg-secondary disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                    {resendCooldown > 0
+                        ? `Resend in ${resendCooldown}s`
+                        : "Resend Verification Email"}
+                </button>
+                <button
+                    onClick={() => { setEmailSent(false); setError(""); }}
+                    className="mt-3 text-sm text-accent font-medium hover:underline cursor-pointer"
                 >
                     ← Try a different email
                 </button>
