@@ -11,6 +11,9 @@
 -- Solution:
 --   1. A BEFORE UPDATE trigger that silently resets email, phone,
 --      and role to their original values if tampered with.
+--      It uses pg_trigger_depth() to allow cascading updates from
+--      the auth sync trigger (depth > 1) while blocking direct
+--      client writes (depth = 1).
 --   2. An AFTER UPDATE trigger on auth.users that syncs email/phone
 --      changes to public.users when Supabase Auth legitimately
 --      updates them (e.g., via the email change flow).
@@ -19,12 +22,17 @@
 -- ─── Trigger 1: Enforce immutability of identity fields ───
 -- Silently reverts any direct attempt to modify email, phone, or role
 -- via the Supabase client SDK, REST API, or any other path.
+--
+-- pg_trigger_depth() returns:
+--   1 when this trigger fires from a direct UPDATE (client/API)
+--   2+ when this trigger fires as part of a cascade (e.g., auth sync)
 
 CREATE OR REPLACE FUNCTION public.enforce_immutable_identity_fields()
 RETURNS TRIGGER AS $$
 BEGIN
-  -- Allow changes coming from our auth sync trigger (it sets this flag)
-  IF current_setting('app.syncing_from_auth', true) = 'true' THEN
+  -- Allow cascading updates from other triggers (e.g., auth sync)
+  -- Direct client writes have depth = 1; cascaded writes have depth > 1
+  IF pg_trigger_depth() > 1 THEN
     RETURN NEW;
   END IF;
 
@@ -62,25 +70,19 @@ CREATE TRIGGER trg_enforce_immutable_identity
 -- supabase.auth.updateUser({ email })), this trigger propagates
 -- those changes to the public.users table.
 --
--- This runs as SECURITY DEFINER so it bypasses RLS.
--- It sets a session flag ('app.syncing_from_auth') that the immutability
--- trigger checks — allowing this legitimate sync to pass through while
--- still blocking direct client-side tampering.
+-- Runs as SECURITY DEFINER to bypass RLS. The immutability trigger
+-- above allows this through because pg_trigger_depth() will be > 1
+-- (this trigger fires at depth 1, its UPDATE fires the immutability
+-- trigger at depth 2).
 
 CREATE OR REPLACE FUNCTION public.sync_auth_to_public_users()
 RETURNS TRIGGER AS $$
 BEGIN
-  -- Set flag so the immutability trigger allows this update
-  PERFORM set_config('app.syncing_from_auth', 'true', true);
-
   UPDATE public.users
   SET
     email = NEW.email,
     phone = NEW.phone
   WHERE id = NEW.id;
-
-  -- Reset flag
-  PERFORM set_config('app.syncing_from_auth', '', true);
 
   RETURN NEW;
 END;
