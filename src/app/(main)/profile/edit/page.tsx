@@ -66,6 +66,12 @@ export default function ProfileEditPage() {
     const [parentEmail, setParentEmail] = useState("");
     const [parentRelationship, setParentRelationship] = useState("guardian");
 
+    // Email change flow
+    const [showEmailChange, setShowEmailChange] = useState(false);
+    const [newEmail, setNewEmail] = useState("");
+    const [emailChangeSending, setEmailChangeSending] = useState(false);
+    const [emailChangeSent, setEmailChangeSent] = useState(false);
+
     useEffect(() => {
         loadProfile();
     }, []);
@@ -657,14 +663,31 @@ export default function ProfileEditPage() {
                             />
                         </FormField>
                         <div className="grid grid-cols-2 gap-4">
-                            <FormField label="Email" icon="bx-envelope">
-                                <input
-                                    type="email"
-                                    value={userEmail}
-                                    readOnly
-                                    className="form-input !pl-10 opacity-60 cursor-not-allowed bg-bg-secondary"
-                                />
-                            </FormField>
+                            <div>
+                                <label className="text-sm font-medium text-text-primary mb-1.5 flex items-center justify-between">
+                                    <span className="flex items-center gap-1">
+                                        Email
+                                    </span>
+                                    {!showEmailChange && !emailChangeSent && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowEmailChange(true)}
+                                            className="text-[11px] font-medium text-accent hover:text-accent-hover transition-colors cursor-pointer"
+                                        >
+                                            Change
+                                        </button>
+                                    )}
+                                </label>
+                                <div className="relative">
+                                    <i className="bx bx-envelope absolute left-3 top-1/2 -translate-y-1/2 text-lg text-text-tertiary pointer-events-none" />
+                                    <input
+                                        type="email"
+                                        value={userEmail}
+                                        readOnly
+                                        className="form-input !pl-10 opacity-60 cursor-not-allowed bg-bg-secondary"
+                                    />
+                                </div>
+                            </div>
                             <FormField label="Phone" icon="bx-phone">
                                 <input
                                     type="tel"
@@ -674,8 +697,94 @@ export default function ProfileEditPage() {
                                 />
                             </FormField>
                         </div>
+
+                        {/* Email Change Panel */}
+                        {showEmailChange && !emailChangeSent && (
+                            <div className="rounded-xl border border-accent/20 bg-accent-light/40 p-4 space-y-3 animate-in fade-in slide-in-from-top-1 duration-200">
+                                <div className="flex items-center gap-2">
+                                    <i className="bx bx-envelope text-accent" />
+                                    <span className="text-sm font-semibold text-text-primary">Change Email Address</span>
+                                </div>
+                                <p className="text-xs text-text-secondary leading-relaxed">
+                                    A confirmation link will be sent to both your current and new email. You must confirm from <strong>both</strong> to complete the change.
+                                </p>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="email"
+                                        value={newEmail}
+                                        onChange={(e) => setNewEmail(e.target.value)}
+                                        placeholder="Enter new email address"
+                                        className="form-input flex-1 !text-sm"
+                                        autoFocus
+                                    />
+                                    <button
+                                        type="button"
+                                        disabled={emailChangeSending || !newEmail.trim()}
+                                        onClick={async () => {
+                                            const trimmed = newEmail.trim().toLowerCase();
+                                            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+                                                toast.error("Please enter a valid email address.");
+                                                return;
+                                            }
+                                            if (trimmed === userEmail.toLowerCase()) {
+                                                toast.error("New email is the same as your current email.");
+                                                return;
+                                            }
+                                            setEmailChangeSending(true);
+                                            try {
+                                                const { error: updateError } = await supabase.auth.updateUser({ email: trimmed });
+                                                if (updateError) throw updateError;
+                                                setEmailChangeSent(true);
+                                                toast.success("Confirmation links sent! Check both inboxes.");
+                                            } catch (err: unknown) {
+                                                const message = err instanceof Error ? err.message : "Failed to initiate email change.";
+                                                toast.error(message);
+                                            } finally {
+                                                setEmailChangeSending(false);
+                                            }
+                                        }}
+                                        className="shrink-0 inline-flex items-center gap-1.5 rounded-[var(--radius-md)] bg-accent px-4 py-2 text-sm font-medium text-white transition-base hover:bg-accent-hover disabled:opacity-50 cursor-pointer"
+                                    >
+                                        {emailChangeSending ? (
+                                            <><i className="bx bx-loader-alt animate-spin" /> Sending...</>
+                                        ) : (
+                                            <><i className="bx bx-send" /> Send</>
+                                        )}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => { setShowEmailChange(false); setNewEmail(""); }}
+                                        className="shrink-0 rounded-[var(--radius-md)] px-3 py-2 text-sm text-text-secondary hover:bg-bg-secondary transition-base cursor-pointer"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Email Change Confirmation State */}
+                        {emailChangeSent && (
+                            <div className="rounded-xl border border-green-200 bg-green-50 p-4 space-y-2">
+                                <div className="flex items-center gap-2">
+                                    <i className="bx bx-check-circle text-green-600 text-lg" />
+                                    <span className="text-sm font-semibold text-green-800">Confirmation links sent</span>
+                                </div>
+                                <p className="text-xs text-green-700 leading-relaxed">
+                                    We&apos;ve sent confirmation links to <strong>{userEmail}</strong> (current) and <strong>{newEmail}</strong> (new).
+                                    Please confirm from both inboxes to complete the email change.
+                                </p>
+                                <button
+                                    type="button"
+                                    onClick={() => { setEmailChangeSent(false); setShowEmailChange(false); setNewEmail(""); }}
+                                    className="text-xs text-green-700 font-medium hover:text-green-900 underline underline-offset-2 cursor-pointer"
+                                >
+                                    Dismiss
+                                </button>
+                            </div>
+                        )}
+
                         <p className="text-[11px] text-text-tertiary flex items-center gap-1 -mt-1">
-                            <i className="bx bx-lock-alt" /> Email and phone are linked to your login method and cannot be changed here.
+                            <i className="bx bx-lock-alt" /> Phone is linked to your login method. Email can be changed via verification.
                         </p>
                         <FormField label="Gender" icon="bx-universal-access">
                             <select
