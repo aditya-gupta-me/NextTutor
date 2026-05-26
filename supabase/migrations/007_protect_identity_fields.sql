@@ -23,6 +23,11 @@
 CREATE OR REPLACE FUNCTION public.enforce_immutable_identity_fields()
 RETURNS TRIGGER AS $$
 BEGIN
+  -- Allow changes coming from our auth sync trigger (it sets this flag)
+  IF current_setting('app.syncing_from_auth', true) = 'true' THEN
+    RETURN NEW;
+  END IF;
+
   -- Prevent changing email — must be synced from auth.users only
   IF NEW.email IS DISTINCT FROM OLD.email THEN
     NEW.email := OLD.email;
@@ -57,20 +62,25 @@ CREATE TRIGGER trg_enforce_immutable_identity
 -- supabase.auth.updateUser({ email })), this trigger propagates
 -- those changes to the public.users table.
 --
--- This runs as SECURITY DEFINER so it bypasses RLS and the
--- immutability trigger above (since it operates on auth.users,
--- not directly on public.users via RLS-checked path — the
--- immutability trigger still fires but the UPDATE comes from
--- a SECURITY DEFINER context on the auth schema trigger).
+-- This runs as SECURITY DEFINER so it bypasses RLS.
+-- It sets a session flag ('app.syncing_from_auth') that the immutability
+-- trigger checks — allowing this legitimate sync to pass through while
+-- still blocking direct client-side tampering.
 
 CREATE OR REPLACE FUNCTION public.sync_auth_to_public_users()
 RETURNS TRIGGER AS $$
 BEGIN
+  -- Set flag so the immutability trigger allows this update
+  PERFORM set_config('app.syncing_from_auth', 'true', true);
+
   UPDATE public.users
   SET
     email = NEW.email,
     phone = NEW.phone
   WHERE id = NEW.id;
+
+  -- Reset flag
+  PERFORM set_config('app.syncing_from_auth', '', true);
 
   RETURN NEW;
 END;
