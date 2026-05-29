@@ -18,13 +18,16 @@ interface AvatarUploadProps {
 }
 
 /**
- * Self-contained avatar upload widget.
+ * Self-contained avatar upload widget with image moderation.
  *
- * Handles file selection, validation, Supabase Storage upload,
- * and preview — all client-side. The parent just gets the final
- * public URL via `onUpload` and includes it in the save payload.
+ * Flow:
+ *   1. User selects a file → instant local preview
+ *   2. File uploads to Supabase Storage at a "pending" path
+ *   3. Server-side moderation API analyses the image via Cloud Vision SafeSearch
+ *   4. If approved → image moves to the live path, parent gets the URL
+ *   5. If rejected → pending file deleted, preview reverted, error shown
  *
- * Built for the tutor edit page but reusable anywhere.
+ * The parent only receives the final URL after moderation approval.
  */
 export default function AvatarUpload({
     userId,
@@ -39,6 +42,7 @@ export default function AvatarUpload({
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [uploading, setUploading] = useState(false);
+    const [moderating, setModerating] = useState(false);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
     // What we actually display — local preview takes priority over DB URL
@@ -50,6 +54,8 @@ export default function AvatarUpload({
         .join("")
         .toUpperCase()
         .slice(0, 2);
+
+    const isBusy = uploading || moderating;
 
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -75,35 +81,55 @@ export default function AvatarUpload({
         setUploading(true);
 
         try {
-            // One file per user — always overwrite at the same path.
-            // This avoids orphaned files piling up in storage.
-            const filePath = `${userId}/avatar`;
+            // ─── Stage 1: Upload to "pending" path ───
+            const pendingPath = `${userId}/pending`;
 
             const { error: uploadError } = await supabase.storage
                 .from("avatars")
-                .upload(filePath, file, {
+                .upload(pendingPath, file, {
                     upsert: true,
                     contentType: file.type,
                 });
 
             if (uploadError) throw uploadError;
 
-            // Build the public URL with a cache-buster so the browser
-            // doesn't show a stale cached version after re-upload
-            const { data: { publicUrl } } = supabase.storage
-                .from("avatars")
-                .getPublicUrl(filePath);
+            setUploading(false);
+            setModerating(true);
 
-            const freshUrl = `${publicUrl}?t=${Date.now()}`;
-            onUpload(freshUrl);
-            toast.success("Photo uploaded!");
+            // ─── Stage 2: Call moderation API ───
+            const { data: { session } } = await supabase.auth.getSession();
+
+            const moderationResponse = await fetch("/api/moderate-avatar", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${session?.access_token}`,
+                },
+                body: JSON.stringify({ userId }),
+            });
+
+            const moderationResult = await moderationResponse.json();
+
+            if (moderationResult.status === "approved") {
+                // Moderation passed — use the live URL
+                onUpload(moderationResult.url);
+                toast.success("Photo uploaded!");
+            } else {
+                // Rejected or error — revert preview
+                setPreviewUrl(null);
+                toast.error(moderationResult.reason || "Photo could not be verified. Please try a different image.");
+            }
         } catch (err) {
             console.error("Avatar upload failed:", err);
             toast.error("Upload failed. Please try again.");
             // Revert preview on failure
             setPreviewUrl(null);
+
+            // Best-effort cleanup of pending file
+            supabase.storage.from("avatars").remove([`${userId}/pending`]).catch(() => {});
         } finally {
             setUploading(false);
+            setModerating(false);
             URL.revokeObjectURL(localPreview);
         }
     };
@@ -145,7 +171,7 @@ export default function AvatarUpload({
             <div className="shrink-0 rounded-full p-[3px]" style={{ background: accentGradient }}>
                 <div
                     className="relative flex h-24 w-24 items-center justify-center rounded-full bg-bg-white text-2xl font-bold text-accent border-[3px] border-bg-white overflow-hidden cursor-pointer"
-                    onClick={() => !uploading && fileInputRef.current?.click()}
+                    onClick={() => !isBusy && fileInputRef.current?.click()}
                     role="button"
                     tabIndex={0}
                     aria-label="Upload profile photo"
@@ -167,8 +193,8 @@ export default function AvatarUpload({
                         <span className="text-2xl">{initials}</span>
                     )}
 
-                    {/* Hover overlay — hidden during upload */}
-                    {!uploading && (
+                    {/* Hover overlay — hidden during upload/moderation */}
+                    {!isBusy && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                             <i className="bx bx-camera text-white text-xl" />
                             <span className="text-[10px] text-white/90 font-medium mt-0.5">
@@ -179,15 +205,24 @@ export default function AvatarUpload({
 
                     {/* Upload spinner */}
                     {uploading && (
-                        <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40">
+                        <div className="absolute inset-0 flex flex-col items-center justify-center rounded-full bg-black/40">
                             <i className="bx bx-loader-alt text-white text-2xl animate-spin" />
+                            <span className="text-[9px] text-white/80 font-medium mt-1">Uploading…</span>
+                        </div>
+                    )}
+
+                    {/* Moderation spinner */}
+                    {moderating && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center rounded-full bg-black/40">
+                            <i className="bx bx-shield-quarter text-white text-2xl animate-pulse" />
+                            <span className="text-[9px] text-white/80 font-medium mt-1">Verifying…</span>
                         </div>
                     )}
                 </div>
             </div>
 
-            {/* Remove button — only visible when there's a photo to remove */}
-            {displayUrl && !uploading && (
+            {/* Remove button — only visible when there's a photo and not busy */}
+            {displayUrl && !isBusy && (
                 <button
                     type="button"
                     onClick={handleRemove}
