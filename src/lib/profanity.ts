@@ -30,7 +30,7 @@ export async function validateReviewComment(comment: string): Promise<string | n
         return "Comment must be under 1000 characters.";
     }
 
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PERSPECTIVE_API_KEY;
+    const apiKey = process.env.GOOGLE_PERSPECTIVE_API_KEY;
     if (!apiKey) {
         console.warn("Perspective API key missing. Skipping profanity check.");
         return null;

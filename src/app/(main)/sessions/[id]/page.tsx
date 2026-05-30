@@ -13,7 +13,7 @@ import {
     submitReview,
 } from "../actions";
 import { useToast } from "@/components/ui/ToastContext";
-import { validateReviewComment } from "@/lib/profanity";
+
 
 interface SessionDetail {
     id: string;
@@ -182,11 +182,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
     const handleReviewSubmit = async () => {
         if (reviewRating === 0) { setReviewError("Please select a rating."); return; }
 
-        // Client-side profanity check
-        if (reviewComment.trim()) {
-            const err = await validateReviewComment(reviewComment);
-            if (err) { setReviewError(err); return; }
-        }
+
 
         setReviewError("");
         setReviewSubmitting(true);
