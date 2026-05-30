@@ -10,7 +10,7 @@ import { moderateImage } from '@/lib/image-moderation';
  * Flow:
  *   1. Validate auth (session cookie → Supabase user)
  *   2. Download the pending image from Supabase Storage
- *   3. Send to Cloud Vision SafeSearch for analysis
+ *   3. Send to Azure AI Content Safety for analysis
  *   4. If safe → copy to live path, delete pending
  *   5. If flagged → delete pending, return rejection reason
  *
@@ -33,9 +33,10 @@ function getAdminClient() {
 
 // User-facing rejection messages (no internal details leaked)
 const REJECTION_MESSAGES: Record<string, string> = {
-    adult: 'Your photo appears to contain adult or explicit content.',
-    violence: 'Your photo appears to contain violent imagery.',
-    racy: 'Your photo appears to contain inappropriate content.',
+    Sexual: 'Your photo appears to contain adult or explicit content.',
+    Violence: 'Your photo appears to contain violent imagery.',
+    Hate: 'Your photo appears to contain hateful or offensive content.',
+    SelfHarm: 'Your photo appears to contain self-harm related content.',
 };
 
 function buildRejectionMessage(flaggedCategories: string[]): string {
@@ -111,7 +112,7 @@ export async function POST(request: NextRequest) {
 
         // ─── 5. Act on result ───
         if (result.error) {
-            // Vision API failed — clean up pending and fail-closed
+            // Moderation API failed — clean up pending and fail-closed
             await adminClient.storage.from('avatars').remove([pendingPath]);
             console.error(`[moderate-avatar] userId=${userId} error="${result.error}" duration=${duration}ms`);
 
@@ -139,23 +140,10 @@ export async function POST(request: NextRequest) {
         // ─── 6. Approved — move pending → live ───
         const livePath = `${userId}/avatar`;
 
-        // Re-read the pending file as a File/Blob for upload
-        const { data: pendingBlob, error: redownloadError } = await adminClient.storage
-            .from('avatars')
-            .download(pendingPath);
-
-        if (redownloadError || !pendingBlob) {
-            console.error(`[moderate-avatar] Re-download failed:`, redownloadError);
-            return NextResponse.json(
-                { status: 'error', reason: 'Failed to finalise upload. Please try again.' },
-                { status: 500 }
-            );
-        }
-
-        // Upload to the live path (upsert = overwrite existing)
+        // Reuse the blob from the first download (already validated by moderation)
         const { error: copyError } = await adminClient.storage
             .from('avatars')
-            .upload(livePath, pendingBlob, {
+            .upload(livePath, fileData, {
                 upsert: true,
                 contentType: fileData.type || 'image/jpeg',
             });

@@ -6,7 +6,8 @@ import { moderateImage } from "../image-moderation";
 const originalFetch = global.fetch;
 
 beforeEach(() => {
-    vi.stubEnv("GOOGLE_CLOUD_VISION_API_KEY", "test-vision-key");
+    vi.stubEnv("AZURE_CONTENT_SAFETY_ENDPOINT", "https://test.cognitiveservices.azure.com");
+    vi.stubEnv("AZURE_CONTENT_SAFETY_KEY", "test-key");
 });
 
 afterEach(() => {
@@ -14,29 +15,31 @@ afterEach(() => {
     vi.unstubAllEnvs();
 });
 
-/** Helper to mock a SafeSearch API response */
-function mockVisionResponse(annotations: Record<string, string>) {
+/** Helper to mock an Azure Content Safety response */
+function mockAzureResponse(categories: Array<{ category: string; severity: number }>) {
     global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: () => Promise.resolve({
-            responses: [{
-                safeSearchAnnotation: annotations,
-            }],
+            categoriesAnalysis: categories,
         }),
     });
+}
+
+/** Default safe response — all categories at severity 0 */
+function safeCategories() {
+    return [
+        { category: "Hate", severity: 0 },
+        { category: "SelfHarm", severity: 0 },
+        { category: "Sexual", severity: 0 },
+        { category: "Violence", severity: 0 },
+    ];
 }
 
 describe("moderateImage", () => {
     // ── Safe images ─────────────────────────────────────────────
 
-    it("returns safe=true for a clean image", async () => {
-        mockVisionResponse({
-            adult: "VERY_UNLIKELY",
-            violence: "VERY_UNLIKELY",
-            racy: "VERY_UNLIKELY",
-            spoof: "UNLIKELY",
-            medical: "UNLIKELY",
-        });
+    it("returns safe=true when all categories are severity 0", async () => {
+        mockAzureResponse(safeCategories());
 
         const result = await moderateImage("base64data");
 
@@ -45,118 +48,108 @@ describe("moderateImage", () => {
         expect(result.error).toBeUndefined();
     });
 
-    it("allows racy=POSSIBLE (below threshold)", async () => {
-        mockVisionResponse({
-            adult: "VERY_UNLIKELY",
-            violence: "VERY_UNLIKELY",
-            racy: "POSSIBLE",
-            spoof: "UNLIKELY",
-            medical: "UNLIKELY",
-        });
-
-        const result = await moderateImage("base64data");
-
-        expect(result.safe).toBe(true);
-        expect(result.flaggedCategories).toHaveLength(0);
-    });
-
-    it("allows racy=LIKELY (only VERY_LIKELY triggers for racy)", async () => {
-        mockVisionResponse({
-            adult: "VERY_UNLIKELY",
-            violence: "VERY_UNLIKELY",
-            racy: "LIKELY",
-            spoof: "UNLIKELY",
-            medical: "UNLIKELY",
-        });
-
-        const result = await moderateImage("base64data");
-
-        expect(result.safe).toBe(true);
-    });
-
     // ── Flagged images ──────────────────────────────────────────
 
-    it("flags adult=LIKELY", async () => {
-        mockVisionResponse({
-            adult: "LIKELY",
-            violence: "VERY_UNLIKELY",
-            racy: "UNLIKELY",
-            spoof: "UNLIKELY",
-            medical: "UNLIKELY",
-        });
+    it("flags Sexual at severity 2", async () => {
+        mockAzureResponse([
+            { category: "Hate", severity: 0 },
+            { category: "SelfHarm", severity: 0 },
+            { category: "Sexual", severity: 2 },
+            { category: "Violence", severity: 0 },
+        ]);
 
         const result = await moderateImage("base64data");
 
         expect(result.safe).toBe(false);
-        expect(result.flaggedCategories).toContain("adult");
+        expect(result.flaggedCategories).toContain("Sexual");
     });
 
-    it("flags adult=VERY_LIKELY", async () => {
-        mockVisionResponse({
-            adult: "VERY_LIKELY",
-            violence: "VERY_UNLIKELY",
-            racy: "UNLIKELY",
-            spoof: "UNLIKELY",
-            medical: "UNLIKELY",
-        });
+    it("flags Sexual at severity 6 (high)", async () => {
+        mockAzureResponse([
+            { category: "Hate", severity: 0 },
+            { category: "SelfHarm", severity: 0 },
+            { category: "Sexual", severity: 6 },
+            { category: "Violence", severity: 0 },
+        ]);
 
         const result = await moderateImage("base64data");
 
         expect(result.safe).toBe(false);
-        expect(result.flaggedCategories).toContain("adult");
+        expect(result.flaggedCategories).toContain("Sexual");
     });
 
-    it("flags violence=LIKELY", async () => {
-        mockVisionResponse({
-            adult: "VERY_UNLIKELY",
-            violence: "LIKELY",
-            racy: "UNLIKELY",
-            spoof: "UNLIKELY",
-            medical: "UNLIKELY",
-        });
+    it("flags Violence at severity 4", async () => {
+        mockAzureResponse([
+            { category: "Hate", severity: 0 },
+            { category: "SelfHarm", severity: 0 },
+            { category: "Sexual", severity: 0 },
+            { category: "Violence", severity: 4 },
+        ]);
 
         const result = await moderateImage("base64data");
 
         expect(result.safe).toBe(false);
-        expect(result.flaggedCategories).toContain("violence");
+        expect(result.flaggedCategories).toContain("Violence");
     });
 
-    it("flags racy=VERY_LIKELY", async () => {
-        mockVisionResponse({
-            adult: "VERY_UNLIKELY",
-            violence: "VERY_UNLIKELY",
-            racy: "VERY_LIKELY",
-            spoof: "UNLIKELY",
-            medical: "UNLIKELY",
-        });
+    it("flags Hate at severity 2", async () => {
+        mockAzureResponse([
+            { category: "Hate", severity: 2 },
+            { category: "SelfHarm", severity: 0 },
+            { category: "Sexual", severity: 0 },
+            { category: "Violence", severity: 0 },
+        ]);
 
         const result = await moderateImage("base64data");
 
         expect(result.safe).toBe(false);
-        expect(result.flaggedCategories).toContain("racy");
+        expect(result.flaggedCategories).toContain("Hate");
+    });
+
+    it("flags SelfHarm at severity 2", async () => {
+        mockAzureResponse([
+            { category: "Hate", severity: 0 },
+            { category: "SelfHarm", severity: 2 },
+            { category: "Sexual", severity: 0 },
+            { category: "Violence", severity: 0 },
+        ]);
+
+        const result = await moderateImage("base64data");
+
+        expect(result.safe).toBe(false);
+        expect(result.flaggedCategories).toContain("SelfHarm");
     });
 
     it("flags multiple categories at once", async () => {
-        mockVisionResponse({
-            adult: "VERY_LIKELY",
-            violence: "LIKELY",
-            racy: "VERY_LIKELY",
-            spoof: "UNLIKELY",
-            medical: "UNLIKELY",
-        });
+        mockAzureResponse([
+            { category: "Hate", severity: 4 },
+            { category: "SelfHarm", severity: 0 },
+            { category: "Sexual", severity: 6 },
+            { category: "Violence", severity: 2 },
+        ]);
 
         const result = await moderateImage("base64data");
 
         expect(result.safe).toBe(false);
-        expect(result.flaggedCategories).toContain("adult");
-        expect(result.flaggedCategories).toContain("violence");
-        expect(result.flaggedCategories).toContain("racy");
+        expect(result.flaggedCategories).toContain("Hate");
+        expect(result.flaggedCategories).toContain("Sexual");
+        expect(result.flaggedCategories).toContain("Violence");
+        expect(result.flaggedCategories).not.toContain("SelfHarm");
     });
 
     // ── Error handling ──────────────────────────────────────────
 
-    it("returns safe=false with error when API key is missing", async () => {
-        vi.stubEnv("GOOGLE_CLOUD_VISION_API_KEY", "");
+    it("returns safe=false with error when endpoint is missing", async () => {
+        vi.stubEnv("AZURE_CONTENT_SAFETY_ENDPOINT", "");
+
+        const result = await moderateImage("base64data");
+
+        expect(result.safe).toBe(false);
+        expect(result.error).toBeDefined();
+    });
+
+    it("returns safe=false with error when key is missing", async () => {
+        vi.stubEnv("AZURE_CONTENT_SAFETY_KEY", "");
 
         const result = await moderateImage("base64data");
 
@@ -180,7 +173,7 @@ describe("moderateImage", () => {
     it("returns safe=false with error when API response is malformed", async () => {
         global.fetch = vi.fn().mockResolvedValue({
             ok: true,
-            json: () => Promise.resolve({ responses: [{}] }),
+            json: () => Promise.resolve({ unexpected: "format" }),
         });
 
         const result = await moderateImage("base64data");
@@ -200,21 +193,19 @@ describe("moderateImage", () => {
 
     // ── Score passthrough ───────────────────────────────────────
 
-    it("returns raw scores from the API", async () => {
-        mockVisionResponse({
-            adult: "UNLIKELY",
-            violence: "VERY_UNLIKELY",
-            racy: "POSSIBLE",
-            spoof: "LIKELY",
-            medical: "VERY_LIKELY",
-        });
+    it("returns raw severity scores from the API", async () => {
+        mockAzureResponse([
+            { category: "Hate", severity: 0 },
+            { category: "SelfHarm", severity: 2 },
+            { category: "Sexual", severity: 4 },
+            { category: "Violence", severity: 6 },
+        ]);
 
         const result = await moderateImage("base64data");
 
-        expect(result.scores.adult).toBe("UNLIKELY");
-        expect(result.scores.violence).toBe("VERY_UNLIKELY");
-        expect(result.scores.racy).toBe("POSSIBLE");
-        expect(result.scores.spoof).toBe("LIKELY");
-        expect(result.scores.medical).toBe("VERY_LIKELY");
+        expect(result.scores.Hate).toBe(0);
+        expect(result.scores.SelfHarm).toBe(2);
+        expect(result.scores.Sexual).toBe(4);
+        expect(result.scores.Violence).toBe(6);
     });
 });

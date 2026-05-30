@@ -23,7 +23,7 @@ interface AvatarUploadProps {
  * Flow:
  *   1. User selects a file → instant local preview
  *   2. File uploads to Supabase Storage at a "pending" path
- *   3. Server-side moderation API analyses the image via Cloud Vision SafeSearch
+ *   3. Server-side moderation API analyses the image via Azure Content Safety
  *   4. If approved → image moves to the live path, parent gets the URL
  *   5. If rejected → pending file deleted, preview reverted, error shown
  *
@@ -107,6 +107,15 @@ export default function AvatarUpload({
                 },
                 body: JSON.stringify({ userId }),
             });
+
+            if (!moderationResponse.ok) {
+                const errorData = await moderationResponse.json().catch(() => null);
+                setPreviewUrl(null);
+                toast.error(errorData?.reason || "Photo could not be verified. Please try a different image.");
+                // Best-effort cleanup of pending file
+                supabase.storage.from("avatars").remove([pendingPath]).catch(() => {});
+                return;
+            }
 
             const moderationResult = await moderationResponse.json();
 

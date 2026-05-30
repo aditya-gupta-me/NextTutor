@@ -63,6 +63,7 @@ function setupApprovedFlow() {
 
     // Mock the moderation API route (global fetch)
     global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
         json: () => Promise.resolve({
             status: "approved",
             url: "https://storage.example.com/avatars/user-123/avatar?t=123",
@@ -78,6 +79,7 @@ function setupRejectedFlow(reason?: string) {
     });
 
     global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
         json: () => Promise.resolve({
             status: "rejected",
             reason: reason || "Your photo was flagged as potentially inappropriate.",

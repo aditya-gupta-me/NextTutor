@@ -1,46 +1,48 @@
 /**
- * Image moderation layer using Google Cloud Vision SafeSearch API.
+ * Image moderation layer using Azure AI Content Safety.
  *
  * Analyses uploaded images for inappropriate content (nudity, violence,
- * explicit material) and returns a structured verdict. Mirrors the
+ * hate content, self-harm) and returns a structured verdict. Mirrors the
  * pattern established in profanity.ts for text moderation.
  *
- * SafeSearch returns likelihood levels for five categories:
- *   adult, spoof, medical, violence, racy
+ * Azure Content Safety returns severity scores (0, 2, 4, 6) across
+ * four categories: Sexual, Violence, Hate, SelfHarm.
  *
- * Each value is one of:
- *   VERY_UNLIKELY | UNLIKELY | POSSIBLE | LIKELY | VERY_LIKELY
+ * Severity levels:
+ *   0 = Safe
+ *   2 = Low severity
+ *   4 = Medium severity
+ *   6 = High severity
  */
 
-const VISION_API_URL = 'https://vision.googleapis.com/v1/images:annotate';
-
 // ─── Threshold configuration ────────────────────────────────────
-// Categories and the minimum likelihood at which they trigger rejection.
-// LIKELY = clear signal; VERY_LIKELY for racy to reduce false positives.
-const REJECTION_THRESHOLDS: Record<string, string[]> = {
-    adult: ['LIKELY', 'VERY_LIKELY'],
-    violence: ['LIKELY', 'VERY_LIKELY'],
-    racy: ['VERY_LIKELY'],  // Only reject the most explicit — avoids flagging swimwear etc.
-};
+// The minimum severity score (inclusive) that triggers rejection.
+// Severity 2 catches clear violations while avoiding false positives.
+const SEVERITY_THRESHOLD = 2;
+
+// Categories to check and their user-facing labels
+const MODERATION_CATEGORIES = ['Sexual', 'Violence', 'Hate', 'SelfHarm'] as const;
 
 export interface ModerationResult {
     safe: boolean;
     flaggedCategories: string[];
-    scores: Record<string, string>;
+    scores: Record<string, number>;
     error?: string;
 }
 
 /**
- * Analyse a base64-encoded image for inappropriate content.
+ * Analyse a base64-encoded image for inappropriate content
+ * using Azure AI Content Safety REST API.
  *
  * @param base64Image - Raw base64 string (no data: prefix)
  * @returns ModerationResult with verdict, flagged categories, and raw scores
  */
 export async function moderateImage(base64Image: string): Promise<ModerationResult> {
-    const apiKey = process.env.GOOGLE_CLOUD_VISION_API_KEY;
+    const endpoint = process.env.AZURE_CONTENT_SAFETY_ENDPOINT;
+    const key = process.env.AZURE_CONTENT_SAFETY_KEY;
 
-    if (!apiKey) {
-        console.error('[image-moderation] GOOGLE_CLOUD_VISION_API_KEY not configured');
+    if (!endpoint || !key) {
+        console.error('[image-moderation] AZURE_CONTENT_SAFETY_ENDPOINT or AZURE_CONTENT_SAFETY_KEY not configured');
         return {
             safe: false,
             flaggedCategories: [],
@@ -49,22 +51,24 @@ export async function moderateImage(base64Image: string): Promise<ModerationResu
         };
     }
 
+    const url = `${endpoint.replace(/\/$/, '')}/contentsafety/image:analyze?api-version=2024-09-01`;
+
     try {
-        const response = await fetch(`${VISION_API_URL}?key=${apiKey}`, {
+        const response = await fetch(url, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Ocp-Apim-Subscription-Key': key,
+                'Content-Type': 'application/json',
+            },
             body: JSON.stringify({
-                requests: [{
-                    image: { content: base64Image },
-                    features: [{ type: 'SAFE_SEARCH_DETECTION' }],
-                }],
+                image: { content: base64Image },
             }),
             signal: AbortSignal.timeout(10_000), // 10s timeout
         });
 
         if (!response.ok) {
             const errorBody = await response.text().catch(() => 'unknown');
-            console.error(`[image-moderation] Vision API failed: ${response.status} — ${errorBody}`);
+            console.error(`[image-moderation] Azure Content Safety failed: ${response.status} — ${errorBody}`);
             return {
                 safe: false,
                 flaggedCategories: [],
@@ -74,10 +78,10 @@ export async function moderateImage(base64Image: string): Promise<ModerationResu
         }
 
         const data = await response.json();
-        const annotation = data.responses?.[0]?.safeSearchAnnotation;
+        const categories = data.categoriesAnalysis;
 
-        if (!annotation) {
-            console.error('[image-moderation] No safeSearchAnnotation in response:', JSON.stringify(data));
+        if (!categories || !Array.isArray(categories)) {
+            console.error('[image-moderation] No categoriesAnalysis in response:', JSON.stringify(data));
             return {
                 safe: false,
                 flaggedCategories: [],
@@ -86,23 +90,19 @@ export async function moderateImage(base64Image: string): Promise<ModerationResu
             };
         }
 
-        // Check each category against its threshold
+        // Build scores map and check against thresholds
         const flaggedCategories: string[] = [];
+        const scores: Record<string, number> = {};
 
-        for (const [category, thresholds] of Object.entries(REJECTION_THRESHOLDS)) {
-            const score = annotation[category];
-            if (score && thresholds.includes(score)) {
-                flaggedCategories.push(category);
+        for (const cat of categories) {
+            const name = cat.category as string;
+            const severity = cat.severity as number;
+            scores[name] = severity;
+
+            if (MODERATION_CATEGORIES.includes(name as typeof MODERATION_CATEGORIES[number]) && severity >= SEVERITY_THRESHOLD) {
+                flaggedCategories.push(name);
             }
         }
-
-        const scores: Record<string, string> = {
-            adult: annotation.adult || 'UNKNOWN',
-            violence: annotation.violence || 'UNKNOWN',
-            racy: annotation.racy || 'UNKNOWN',
-            spoof: annotation.spoof || 'UNKNOWN',
-            medical: annotation.medical || 'UNKNOWN',
-        };
 
         const safe = flaggedCategories.length === 0;
 
