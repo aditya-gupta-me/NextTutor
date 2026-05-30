@@ -4,12 +4,14 @@ import userEvent from "@testing-library/user-event";
 import AvatarUpload from "../AvatarUpload";
 
 // ─── Mocks ──────────────────────────────────────────────────────
-// We mock the Supabase client and Toast context so tests stay fast
-// and don't touch any real infrastructure.
+// We mock the Supabase client, Toast context, and the global fetch
+// (for the moderation API route) so tests stay fast and don't touch
+// any real infrastructure.
 
 const mockUpload = vi.fn();
 const mockRemove = vi.fn();
 const mockGetPublicUrl = vi.fn();
+const mockGetSession = vi.fn();
 
 vi.mock("@/lib/supabase/client", () => ({
     createClient: () => ({
@@ -19,6 +21,9 @@ vi.mock("@/lib/supabase/client", () => ({
                 remove: mockRemove,
                 getPublicUrl: mockGetPublicUrl,
             }),
+        },
+        auth: {
+            getSession: mockGetSession,
         },
     }),
 }));
@@ -49,17 +54,53 @@ function createMockFile(
     return new File([content], name, { type });
 }
 
+/** Sets up mocks for a successful upload + moderation approval */
+function setupApprovedFlow() {
+    mockUpload.mockResolvedValue({ error: null });
+    mockGetSession.mockResolvedValue({
+        data: { session: { access_token: "test-token" } },
+    });
+
+    // Mock the moderation API route (global fetch)
+    global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({
+            status: "approved",
+            url: "https://storage.example.com/avatars/user-123/avatar?t=123",
+        }),
+    });
+}
+
+/** Sets up mocks for upload success but moderation rejection */
+function setupRejectedFlow(reason?: string) {
+    mockUpload.mockResolvedValue({ error: null });
+    mockGetSession.mockResolvedValue({
+        data: { session: { access_token: "test-token" } },
+    });
+
+    global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({
+            status: "rejected",
+            reason: reason || "Your photo was flagged as potentially inappropriate.",
+        }),
+    });
+
+    mockRemove.mockResolvedValue({ error: null });
+}
+
 // ─── Tests ──────────────────────────────────────────────────────
 
 beforeEach(() => {
     vi.clearAllMocks();
-
-    // Default: upload succeeds, returns a public URL
     mockUpload.mockResolvedValue({ error: null });
+    mockRemove.mockResolvedValue({ error: null });
     mockGetPublicUrl.mockReturnValue({
         data: { publicUrl: "https://storage.example.com/avatars/user-123/avatar" },
     });
-    mockRemove.mockResolvedValue({ error: null });
+    mockGetSession.mockResolvedValue({
+        data: { session: { access_token: "test-token" } },
+    });
 });
 
 describe("AvatarUpload", () => {
@@ -132,9 +173,11 @@ describe("AvatarUpload", () => {
         expect(mockUpload).not.toHaveBeenCalled();
     });
 
-    // ── Upload flow ─────────────────────────────────────────────
+    // ── Upload + Moderation flow ────────────────────────────────
 
-    it("uploads a valid file and calls onUpload with the public URL", async () => {
+    it("uploads to pending path, moderates, and calls onUpload on approval", async () => {
+        setupApprovedFlow();
+
         const user = userEvent.setup();
         const onUpload = vi.fn();
         render(<AvatarUpload {...defaultProps} onUpload={onUpload} />);
@@ -144,24 +187,59 @@ describe("AvatarUpload", () => {
 
         await user.upload(input, validFile);
 
+        // Should upload to the "pending" path, not directly to "avatar"
         await waitFor(() => {
             expect(mockUpload).toHaveBeenCalledWith(
-                "user-123/avatar",
+                "user-123/pending",
                 expect.any(File),
                 { upsert: true, contentType: "image/jpeg" }
             );
         });
 
+        // Should call the moderation API
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenCalledWith(
+                "/api/moderate-avatar",
+                expect.objectContaining({
+                    method: "POST",
+                    body: JSON.stringify({ userId: "user-123" }),
+                })
+            );
+        });
+
+        // Should pass the approved URL to the parent
         await waitFor(() => {
             expect(onUpload).toHaveBeenCalledWith(
-                expect.stringContaining("https://storage.example.com/avatars/user-123/avatar?t=")
+                "https://storage.example.com/avatars/user-123/avatar?t=123"
             );
         });
 
         expect(mockToast.success).toHaveBeenCalledWith("Photo uploaded!");
     });
 
-    it("shows error toast and reverts preview when upload fails", async () => {
+    it("shows error toast and reverts preview when moderation rejects", async () => {
+        setupRejectedFlow("Your photo appears to contain adult content. Please upload a different photo.");
+
+        const user = userEvent.setup();
+        const onUpload = vi.fn();
+        render(<AvatarUpload {...defaultProps} onUpload={onUpload} />);
+
+        const validFile = createMockFile("photo.png", 100_000, "image/png");
+        const input = screen.getByTestId("avatar-file-input");
+
+        await user.upload(input, validFile);
+
+        await waitFor(() => {
+            expect(mockToast.error).toHaveBeenCalledWith(
+                "Your photo appears to contain adult content. Please upload a different photo."
+            );
+        });
+
+        // onUpload should NOT have been called on rejection
+        expect(onUpload).not.toHaveBeenCalled();
+    });
+
+    it("shows error toast and reverts preview when storage upload fails", async () => {
         mockUpload.mockResolvedValue({ error: new Error("Storage error") });
 
         const user = userEvent.setup();
