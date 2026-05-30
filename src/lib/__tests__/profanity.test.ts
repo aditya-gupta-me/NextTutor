@@ -4,7 +4,7 @@ import { validateReviewComment } from "../profanity";
 describe("validateReviewComment (Perspective API)", () => {
     beforeEach(() => {
         vi.unstubAllGlobals();
-        process.env.NEXT_PUBLIC_GOOGLE_PERSPECTIVE_API_KEY = "test-key";
+        process.env.GOOGLE_PERSPECTIVE_API_KEY = "test-key";
     });
 
     it("returns null for empty comments", async () => {
@@ -20,7 +20,7 @@ describe("validateReviewComment (Perspective API)", () => {
     });
 
     it("fails open (allows comment) if API key is missing", async () => {
-        delete process.env.NEXT_PUBLIC_GOOGLE_PERSPECTIVE_API_KEY;
+        delete process.env.GOOGLE_PERSPECTIVE_API_KEY;
         // Mock fetch just in case, though it shouldn't be called
         vi.stubGlobal("fetch", vi.fn());
         
