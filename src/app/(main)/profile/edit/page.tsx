@@ -577,26 +577,28 @@ export default function ProfileEditPage() {
                     {/* Profile Content */}
                     <div className="px-6 md:px-8 pb-6">
                         <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-12">
-                            {/* Avatar — click to upload (tutor only for now) */}
-                            {role === "tutor" && userId ? (
+                            {/* Avatar — click to upload (both roles) */}
+                            {userId ? (
                                 <AvatarUpload
                                     userId={userId}
                                     currentUrl={avatarUrl}
                                     fullName={fullName}
                                     onUpload={(url) => setAvatarUrl(url)}
                                     onRemove={() => setAvatarUrl(null)}
-                                    accentGradient="linear-gradient(135deg, #9B7FD4, #C3B1E1)"
+                                    accentGradient={
+                                        role === "tutor"
+                                            ? "linear-gradient(135deg, #9B7FD4, #C3B1E1)"
+                                            : "linear-gradient(135deg, #5BA3D9, #A7D8F0)"
+                                    }
                                 />
                             ) : (
                                 <div className="shrink-0 rounded-full p-[3px]" style={{
-                                    background: "linear-gradient(135deg, #5BA3D9, #A7D8F0)",
+                                    background: role === "tutor"
+                                        ? "linear-gradient(135deg, #9B7FD4, #C3B1E1)"
+                                        : "linear-gradient(135deg, #5BA3D9, #A7D8F0)",
                                 }}>
                                     <div className="flex h-24 w-24 items-center justify-center rounded-full bg-bg-white text-2xl font-bold text-accent border-[3px] border-bg-white">
-                                        {avatarUrl ? (
-                                            <img src={avatarUrl} alt={fullName} className="h-full w-full rounded-full object-cover" />
-                                        ) : (
-                                            <span className="text-2xl">{initials}</span>
-                                        )}
+                                        <span className="text-2xl">{initials}</span>
                                     </div>
                                 </div>
                             )}
