@@ -72,6 +72,9 @@ export default function ProfileEditPage() {
     const [emailChangeSending, setEmailChangeSending] = useState(false);
     const [emailChangeSent, setEmailChangeSent] = useState(false);
 
+    // Snapshot of original tutor profile for change detection (analytics events)
+    const originalTutorProfile = useRef<Record<string, unknown> | null>(null);
+
     useEffect(() => {
         loadProfile();
     }, []);
@@ -255,6 +258,17 @@ export default function ProfileEditPage() {
                         answers[faq.question] = faq.answer;
                     });
                     setFaqAnswers(answers);
+
+                    // Capture snapshot for change detection (analytics events)
+                    originalTutorProfile.current = {
+                        subjects: tutorProfile.subjects || [],
+                        qualification: tutorProfile.qualification || "",
+                        bio: tutorProfile.bio || "",
+                        fee_per_month: tutorProfile.fee_per_month?.toString() || "",
+                        fee_per_session: tutorProfile.fee_per_session?.toString() || "",
+                        address: tutorProfile.address || "",
+                        city: tutorProfile.city || "",
+                    };
                 }
             } else if (effectiveRole === "student") {
                 const { data: studentProfile } = await supabase
@@ -438,6 +452,55 @@ export default function ProfileEditPage() {
                 if (faqRows.length > 0) {
                     await supabase.from("tutor_faqs").insert(faqRows);
                 }
+
+                // ─── Track profile changes for analytics ───
+                if (originalTutorProfile.current) {
+                    const prev = originalTutorProfile.current;
+                    const changes: { event_type: string; description: string }[] = [];
+
+                    // Subjects changed
+                    const prevSubjects = (prev.subjects as string[]).sort().join(",");
+                    const currSubjects = [...subjects].sort().join(",");
+                    if (prevSubjects !== currSubjects) {
+                        const added = subjects.filter(s => !(prev.subjects as string[]).includes(s));
+                        const removed = (prev.subjects as string[]).filter(s => !subjects.includes(s));
+                        const parts: string[] = [];
+                        if (added.length) parts.push(`Added ${added.join(", ")}`);
+                        if (removed.length) parts.push(`Removed ${removed.join(", ")}`);
+                        changes.push({ event_type: "subjects_changed", description: parts.join("; ") });
+                    }
+
+                    // Bio updated
+                    if (prev.bio !== bio) {
+                        changes.push({ event_type: "bio_updated", description: "Updated bio" });
+                    }
+
+                    // Qualification updated
+                    if (prev.qualification !== qualification) {
+                        changes.push({ event_type: "qualification_updated", description: "Updated qualification" });
+                    }
+
+                    // Fee changed
+                    if (prev.fee_per_month !== feePerMonth || prev.fee_per_session !== feePerSession) {
+                        changes.push({ event_type: "fee_updated", description: "Updated pricing" });
+                    }
+
+                    // Location changed
+                    if (prev.address !== address || prev.city !== city) {
+                        changes.push({ event_type: "location_updated", description: "Updated location" });
+                    }
+
+                    // Insert all detected changes
+                    if (changes.length > 0) {
+                        await supabase.from("profile_update_events").insert(
+                            changes.map(c => ({
+                                tutor_profile_id: tutorProfileId,
+                                event_type: c.event_type,
+                                description: c.description,
+                            }))
+                        );
+                    }
+                }
             } else {
                 // Check for existing student profile
                 const { data: existing } = await supabase
@@ -583,7 +646,24 @@ export default function ProfileEditPage() {
                                     userId={userId}
                                     currentUrl={avatarUrl}
                                     fullName={fullName}
-                                    onUpload={(url) => setAvatarUrl(url)}
+                                    onUpload={async (url) => {
+                                        setAvatarUrl(url);
+                                        // Track avatar change for tutor analytics
+                                        if (role === "tutor") {
+                                            const { data: tp } = await supabase
+                                                .from("tutor_profiles")
+                                                .select("id")
+                                                .eq("user_id", userId)
+                                                .maybeSingle();
+                                            if (tp) {
+                                                await supabase.from("profile_update_events").insert({
+                                                    tutor_profile_id: tp.id,
+                                                    event_type: "avatar_updated",
+                                                    description: "Profile photo updated",
+                                                });
+                                            }
+                                        }
+                                    }}
                                     onRemove={() => setAvatarUrl(null)}
                                     accentGradient={
                                         role === "tutor"

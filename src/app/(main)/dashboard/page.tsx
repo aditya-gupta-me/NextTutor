@@ -268,6 +268,28 @@ export default async function DashboardPage() {
                 )}
             </div>
 
+            {/* Profile Analytics Summary — tutor only */}
+            {role === "tutor" && (
+                <Link
+                    href="/analytics"
+                    className="flex items-center gap-4 rounded-[var(--radius-xl)] border border-border bg-bg-white p-5 mb-8 transition-all hover:shadow-md hover:border-accent/30 group"
+                >
+                    <span
+                        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-white text-xl"
+                        style={{ background: "linear-gradient(135deg, #667eea, #764ba2)" }}
+                    >
+                        <i className="bx bx-bar-chart-alt-2" />
+                    </span>
+                    <div className="flex-1">
+                        <p className="text-sm font-semibold text-text-primary">Profile Analytics</p>
+                        <p className="text-xs text-text-secondary">
+                            See how students discover and engage with your profile
+                        </p>
+                    </div>
+                    <i className="bx bx-chevron-right text-xl text-text-tertiary group-hover:text-accent transition-colors" />
+                </Link>
+            )}
+
             {/* Quick actions */}
             <div className="mb-8">
                 <h2 className="text-lg font-semibold text-text-primary mb-4">
@@ -311,10 +333,10 @@ export default async function DashboardPage() {
                                 badge={pendingCount > 0 ? pendingCount : undefined}
                             />
                             <QuickAction
-                                href="/payments"
-                                icon="bx bx-credit-card-alt"
-                                title="Payments"
-                                desc="Track your earnings"
+                                href="/analytics"
+                                icon="bx bx-bar-chart-alt-2"
+                                title="Profile Analytics"
+                                desc="View your profile performance"
                             />
                         </>
                     )}
