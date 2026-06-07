@@ -14,10 +14,8 @@ import crypto from 'crypto';
  *   - Returns 202 immediately (fire-and-forget)
  */
 
-// Simple in-memory rate limiter (per-IP, resets every minute)
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT = 30;
-const RATE_WINDOW_MS = 60_000;
+const RATE_WINDOW_SECONDS = 60;
 
 // Cooldown: same viewer can only count once per 24 hours per tutor
 const COOLDOWN_HOURS = 24;
@@ -29,8 +27,28 @@ function getAdminClient() {
     return createClient(url, serviceKey, { auth: { persistSession: false } });
 }
 
+/**
+ * Extract client IP from trusted request headers.
+ * Trust assumption: We rely on platform-provided headers (cf-connecting-ip, x-real-ip)
+ * which are set by the reverse proxy/CDN. x-forwarded-for is used as a fallback but
+ * can be spoofed by clients, so it's less reliable for rate limiting.
+ */
 function getClientIp(request: NextRequest): string {
-    return request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    // Cloudflare provides cf-connecting-ip (most trusted)
+    const cfIp = request.headers.get('cf-connecting-ip');
+    if (cfIp) return cfIp;
+
+    // Vercel and some other platforms set x-real-ip
+    const realIp = request.headers.get('x-real-ip');
+    if (realIp) return realIp;
+
+    // Fallback to x-forwarded-for (can be spoofed)
+    const forwardedFor = request.headers.get('x-forwarded-for');
+    if (forwardedFor) {
+        return forwardedFor.split(',')[0]?.trim();
+    }
+
+    return 'unknown';
 }
 
 function generateFingerprint(request: NextRequest): string {
@@ -39,17 +57,64 @@ function generateFingerprint(request: NextRequest): string {
     return crypto.createHash('sha256').update(`${ip}:${ua}`).digest('hex').slice(0, 16);
 }
 
-function checkRateLimit(ip: string): boolean {
-    const now = Date.now();
-    const entry = rateLimitMap.get(ip);
+/**
+ * Rate limiting using Redis (distributed) or in-memory fallback (dev only).
+ * Uses INCR + EXPIRE pattern for reliable rate limiting in serverless.
+ */
+async function checkRateLimit(ip: string): Promise<boolean> {
+    const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
+    const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
 
-    if (!entry || now > entry.resetAt) {
-        rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    // If Redis is configured, use distributed rate limiting
+    if (redisUrl && redisToken) {
+        try {
+            const key = `rate_limit:track_view:${ip}`;
+
+            // Increment counter
+            const incrResponse = await fetch(`${redisUrl}/incr/${key}`, {
+                headers: { Authorization: `Bearer ${redisToken}` },
+            });
+            const incrData = await incrResponse.json();
+            const count = incrData.result as number;
+
+            // Set expiry on first increment
+            if (count === 1) {
+                await fetch(`${redisUrl}/expire/${key}/${RATE_WINDOW_SECONDS}`, {
+                    headers: { Authorization: `Bearer ${redisToken}` },
+                });
+            }
+
+            return count <= RATE_LIMIT;
+        } catch (error) {
+            console.error('[track-view] Redis rate limit error:', error);
+            // On Redis error, allow the request (fail open)
+            return true;
+        }
+    }
+
+    // Fallback: in-memory rate limiting (dev only, not reliable in production)
+    if (process.env.NODE_ENV === 'development') {
+        // Simple in-memory map for local dev
+        if (!global.__rateLimitMap) {
+            global.__rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+        }
+        const rateLimitMap = global.__rateLimitMap as Map<string, { count: number; resetAt: number }>;
+
+        const now = Date.now();
+        const entry = rateLimitMap.get(ip);
+
+        if (!entry || now > entry.resetAt) {
+            rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW_SECONDS * 1000 });
+            return true;
+        }
+
+        if (entry.count >= RATE_LIMIT) return false;
+        entry.count++;
         return true;
     }
 
-    if (entry.count >= RATE_LIMIT) return false;
-    entry.count++;
+    // No Redis in production: log warning and allow (fail open)
+    console.warn('[track-view] No Redis configured for rate limiting in production');
     return true;
 }
 
@@ -64,7 +129,7 @@ export async function POST(request: NextRequest) {
 
         // Rate limit check
         const ip = getClientIp(request);
-        if (!checkRateLimit(ip)) {
+        if (!(await checkRateLimit(ip))) {
             return new NextResponse(null, { status: 429 });
         }
 
@@ -82,13 +147,32 @@ export async function POST(request: NextRequest) {
 
         // Self-view check: is the viewer the tutor who owns this profile?
         if (viewerId) {
-            const { data: tutorProfile } = await adminClient
+            const { data: tutorProfile, error: profileError } = await adminClient
                 .from('tutor_profiles')
                 .select('user_id')
                 .eq('id', tutorProfileId)
                 .single();
 
-            if (tutorProfile?.user_id === viewerId) {
+            if (profileError) {
+                console.error('[track-view] Failed to fetch tutor profile:', {
+                    tutorProfileId,
+                    error: profileError,
+                });
+                return NextResponse.json(
+                    { error: 'Invalid tutor profile' },
+                    { status: 500 }
+                );
+            }
+
+            if (!tutorProfile) {
+                console.error('[track-view] Tutor profile not found:', tutorProfileId);
+                return NextResponse.json(
+                    { error: 'Tutor profile not found' },
+                    { status: 404 }
+                );
+            }
+
+            if (tutorProfile.user_id === viewerId) {
                 // Self-view — discard silently
                 return new NextResponse(null, { status: 202 });
             }
@@ -123,12 +207,24 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // Insert valid view
-        await adminClient.from('profile_views').insert({
+        // Insert valid view (with conflict handling for TOCTOU race conditions)
+        // The DB unique constraint ensures no duplicate views within 24h window
+        const { error: insertError } = await adminClient.from('profile_views').insert({
             tutor_profile_id: tutorProfileId,
             viewer_id: viewerId,
             viewer_fingerprint: fingerprint,
         });
+
+        // Handle unique constraint violation (race condition: view already counted)
+        if (insertError) {
+            // PostgreSQL unique violation error code is '23505'
+            if (insertError.code === '23505') {
+                // Already counted - return success silently
+                return new NextResponse(null, { status: 202 });
+            }
+            // Other errors: log but don't fail visibly (fire-and-forget)
+            console.error('[track-view] Insert error:', insertError);
+        }
 
         return new NextResponse(null, { status: 202 });
 
