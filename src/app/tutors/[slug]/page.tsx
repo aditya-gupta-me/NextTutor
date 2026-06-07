@@ -6,6 +6,7 @@ import Navbar from "@/components/ui/Navbar";
 import Footer from "@/components/ui/Footer";
 import ReviewsList from "@/components/ui/ReviewsList";
 import TutorMap from "@/components/ui/TutorMap";
+import ViewTracker from "@/components/ui/ViewTracker";
 
 interface PageProps {
     params: Promise<{ slug: string }>;
@@ -61,6 +62,19 @@ export default async function TutorProfilePage({ params }: PageProps) {
         .single();
 
     if (!tutor) notFound();
+
+    // Check if tutor recently updated their profile (within 14 days)
+    const { data: recentUpdate } = await supabase
+        .from('profile_update_events')
+        .select('created_at')
+        .eq('tutor_profile_id', tutor.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+    const recentlyUpdated = recentUpdate
+        ? (Date.now() - new Date(recentUpdate.created_at).getTime()) < 14 * 24 * 60 * 60 * 1000
+        : false;
 
     const user = (tutor as unknown as { users: { full_name: string; avatar_url: string | null; email: string; phone: string } }).users;
     const faqs = (tutor.tutor_faqs || []) as { id: string; question: string; answer: string; display_order: number }[];
@@ -130,6 +144,7 @@ export default async function TutorProfilePage({ params }: PageProps) {
 
     return (
         <>
+            <ViewTracker tutorProfileId={tutor.id} />
             <Navbar isLoggedIn={!!currentUser} />
             <main className="min-h-screen bg-bg-primary pt-20">
                 <div className="mx-auto max-w-[720px] px-5 py-8 md:py-12">
@@ -184,6 +199,11 @@ export default async function TutorProfilePage({ params }: PageProps) {
                                     <span className="text-xs text-text-tertiary">
                                         📍 {tutor.locality}, {tutor.city}
                                     </span>
+                                    {recentlyUpdated && (
+                                        <span className="inline-flex items-center gap-1 rounded-[var(--radius-full)] bg-success-light px-2.5 py-1 text-xs font-medium text-success">
+                                            🟢 Recently updated
+                                        </span>
+                                    )}
                                 </div>
 
                                 {/* Pricing */}
