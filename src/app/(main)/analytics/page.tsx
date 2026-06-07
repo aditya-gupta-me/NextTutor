@@ -56,7 +56,10 @@ export default function AnalyticsPage() {
                 return;
             }
 
-            const res = await fetch(`/api/analytics?range=${selectedRange}`, {
+            // Get user's timezone
+            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+            const res = await fetch(`/api/analytics?range=${selectedRange}&timezone=${encodeURIComponent(timezone)}`, {
                 headers: {
                     "Authorization": `Bearer ${session.access_token}`,
                 },

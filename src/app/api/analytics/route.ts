@@ -48,17 +48,35 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'Not a tutor' }, { status: 403 });
         }
 
-        // Parse range
+        // Parse range and timezone
         const range = request.nextUrl.searchParams.get('range') || '30d';
+        const timezone = request.nextUrl.searchParams.get('timezone') || 'UTC';
         const days = RANGE_DAYS[range] || 30;
-        const startDate = new Date();
+
+        // Compute dates in the user's timezone
+        const formatDateInTimezone = (date: Date, tz: string): string => {
+            try {
+                return new Intl.DateTimeFormat('en-CA', {
+                    timeZone: tz,
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                }).format(date).replace(/\//g, '-');
+            } catch {
+                // Invalid timezone fallback to UTC
+                return date.toISOString().split('T')[0];
+            }
+        };
+
+        const now = new Date();
+        const startDate = new Date(now);
         startDate.setDate(startDate.getDate() - days);
-        const startDateStr = startDate.toISOString().split('T')[0];
+        const startDateStr = formatDateInTimezone(startDate, timezone);
 
         // Also compute previous period for growth calculation
-        const prevStartDate = new Date();
+        const prevStartDate = new Date(now);
         prevStartDate.setDate(prevStartDate.getDate() - days * 2);
-        const prevStartDateStr = prevStartDate.toISOString().split('T')[0];
+        const prevStartDateStr = formatDateInTimezone(prevStartDate, timezone);
 
         // Fetch daily stats for current period
         const { data: dailyStats } = await adminClient
@@ -85,7 +103,7 @@ export async function GET(request: NextRequest) {
             .order('created_at', { ascending: true });
 
         // Also get today's live count from raw profile_views (not yet aggregated)
-        const todayStr = new Date().toISOString().split('T')[0];
+        const todayStr = formatDateInTimezone(now, timezone);
         const { count: todayViews } = await adminClient
             .from('profile_views')
             .select('*', { count: 'exact', head: true })
@@ -111,8 +129,8 @@ export async function GET(request: NextRequest) {
             });
         }
 
-        // Add today's live data
-        if (todayViews && todayViews > 0) {
+        // Add today's live data only if not already in aggregated stats
+        if (todayViews && todayViews > 0 && !dailyMap.has(todayStr)) {
             dailyMap.set(todayStr, {
                 views: todayViews,
                 unique: todayUnique,
@@ -136,7 +154,17 @@ export async function GET(request: NextRequest) {
 
         // Calculate totals
         const totalViews = daily.reduce((sum, d) => sum + d.views, 0);
-        const uniqueVisitors = daily.reduce((sum, d) => sum + d.unique, 0);
+
+        // Compute true unique visitors for the whole period (not daily sum)
+        const { data: uniqueVisitorsData } = await adminClient
+            .from('profile_views')
+            .select('viewer_id, viewer_fingerprint')
+            .eq('tutor_profile_id', tutorProfile.id)
+            .gte('created_at', `${startDateStr}T00:00:00`);
+
+        const uniqueVisitors = new Set(
+            (uniqueVisitorsData || []).map(r => r.viewer_id || r.viewer_fingerprint)
+        ).size;
         const prevTotalViews = (prevStats || []).reduce((sum, d) => sum + d.total_views, 0);
 
         let growthPercent = 0;

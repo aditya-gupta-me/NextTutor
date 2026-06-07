@@ -432,6 +432,17 @@ export default function ProfileEditPage() {
                         throw new Error(`Failed to create profile: ${insertErr?.message || "No data returned"}`);
                     }
                     tutorProfileId = newProfile.id;
+
+                    // Initialize snapshot for newly created profile
+                    originalTutorProfile.current = {
+                        subjects: subjects || [],
+                        qualification: qualification || "",
+                        bio: bio || "",
+                        fee_per_month: feePerMonth || "",
+                        fee_per_session: feePerSession || "",
+                        address: address || "",
+                        city: city || "",
+                    };
                 }
 
                 // Save FAQs
@@ -459,7 +470,7 @@ export default function ProfileEditPage() {
                     const changes: { event_type: string; description: string }[] = [];
 
                     // Subjects changed
-                    const prevSubjects = (prev.subjects as string[]).sort().join(",");
+                    const prevSubjects = [...(prev.subjects as string[])].sort().join(",");
                     const currSubjects = [...subjects].sort().join(",");
                     if (prevSubjects !== currSubjects) {
                         const added = subjects.filter(s => !(prev.subjects as string[]).includes(s));
@@ -492,14 +503,33 @@ export default function ProfileEditPage() {
 
                     // Insert all detected changes
                     if (changes.length > 0) {
-                        await supabase.from("profile_update_events").insert(
+                        const { error: eventsError } = await supabase.from("profile_update_events").insert(
                             changes.map(c => ({
                                 tutor_profile_id: tutorProfileId,
                                 event_type: c.event_type,
                                 description: c.description,
                             }))
                         );
+                        if (eventsError) {
+                            console.error("Failed to log profile update events:", {
+                                tutorProfileId,
+                                changes,
+                                error: eventsError,
+                            });
+                            toast.error("Profile saved, but failed to log update events for analytics.");
+                        }
                     }
+
+                    // Update snapshot to the newly saved profile
+                    originalTutorProfile.current = {
+                        subjects: subjects || [],
+                        qualification: qualification || "",
+                        bio: bio || "",
+                        fee_per_month: feePerMonth || "",
+                        fee_per_session: feePerSession || "",
+                        address: address || "",
+                        city: city || "",
+                    };
                 }
             } else {
                 // Check for existing student profile
