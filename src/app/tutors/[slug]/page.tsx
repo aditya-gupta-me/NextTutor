@@ -7,6 +7,7 @@ import Footer from "@/components/ui/Footer";
 import ReviewsList from "@/components/ui/ReviewsList";
 import TutorMap from "@/components/ui/TutorMap";
 import ViewTracker from "@/components/ui/ViewTracker";
+import TutorActivityGraph from "@/components/ui/TutorActivityGraph";
 
 interface PageProps {
     params: Promise<{ slug: string }>;
@@ -284,6 +285,11 @@ export default async function TutorProfilePage({ params }: PageProps) {
                             <DetailItem label="Available Seats" value={`${tutor.available_seats}`} />
                         </div>
                     </div>
+
+                    {/* Activity Graph (student-facing, no exact numbers) */}
+                    {currentRole === "student" && (
+                        <TutorActivityGraph tutorProfileId={tutor.id} />
+                    )}
 
                     {/* FAQs */}
                     {faqs.length > 0 && (

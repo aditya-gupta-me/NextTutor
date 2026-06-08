@@ -86,6 +86,9 @@ export default async function MainLayout({ children }: { children: React.ReactNo
                     {role === "tutor" && (
                         <NavLink href="/reviews" icon="bx bx-star" label="Reviews" />
                     )}
+                    {role === "tutor" && (
+                        <NavLink href="/analytics" icon="bx bx-bar-chart-alt-2" label="Analytics" />
+                    )}
                     <NavLink href="/payments" icon="bx bx-credit-card-alt" label="Payments" />
                     <NavLink href="/settings" icon="bx bx-cog" label="Settings" />
                 </nav>

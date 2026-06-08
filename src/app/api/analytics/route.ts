@@ -86,17 +86,21 @@ export async function GET(request: NextRequest) {
 
         // Also get today's live count from raw profile_views (not yet aggregated)
         const todayStr = new Date().toISOString().split('T')[0];
-        const { count: todayViews } = await adminClient
+        const todayStart = `${todayStr}T00:00:00.000Z`;
+
+        const { count: todayViewsCount } = await adminClient
             .from('profile_views')
             .select('*', { count: 'exact', head: true })
             .eq('tutor_profile_id', tutorProfile.id)
-            .gte('created_at', `${todayStr}T00:00:00`);
+            .gte('created_at', todayStart);
+
+        const todayViews = todayViewsCount ?? 0;
 
         const { data: todayUniqueRaw } = await adminClient
             .from('profile_views')
             .select('viewer_id, viewer_fingerprint')
             .eq('tutor_profile_id', tutorProfile.id)
-            .gte('created_at', `${todayStr}T00:00:00`);
+            .gte('created_at', todayStart);
 
         const todayUnique = new Set(
             (todayUniqueRaw || []).map(r => r.viewer_id || r.viewer_fingerprint)
@@ -112,7 +116,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Add today's live data
-        if (todayViews && todayViews > 0) {
+        if (todayViews > 0) {
             dailyMap.set(todayStr, {
                 views: todayViews,
                 unique: todayUnique,
