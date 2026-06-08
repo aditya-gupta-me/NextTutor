@@ -2,6 +2,17 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import MobileHeader from "@/components/ui/MobileHeader";
+import {
+    Dashboard,
+    User,
+    Search,
+    CalendarEvent,
+    Star,
+    ChartSpline,
+    CreditCardAlt,
+    Cog,
+} from "@boxicons/react";
+import type { ReactNode } from "react";
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
     const supabase = await createClient();
@@ -72,25 +83,25 @@ export default async function MainLayout({ children }: { children: React.ReactNo
 
                 {/* Nav */}
                 <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-                    <NavLink href="/dashboard" icon="bx bx-dashboard" label="Dashboard" />
-                    <NavLink href="/profile" icon="bx bx-user" label="My Profile" />
+                    <NavLink href="/dashboard" icon={<Dashboard size="sm" />} label="Dashboard" />
+                    <NavLink href="/profile" icon={<User size="sm" />} label="My Profile" />
                     {role === "student" && (
-                        <NavLink href="/tutors" icon="bx bx-search" label="Find Tutors" />
+                        <NavLink href="/tutors" icon={<Search size="sm" />} label="Find Tutors" />
                     )}
                     <NavLink
                         href="/sessions"
-                        icon="bx bx-calendar-event"
+                        icon={<CalendarEvent size="sm" />}
                         label="Sessions"
                         badge={pendingSessionCount}
                     />
                     {role === "tutor" && (
-                        <NavLink href="/reviews" icon="bx bx-star" label="Reviews" />
+                        <NavLink href="/reviews" icon={<Star size="sm" />} label="Reviews" />
                     )}
                     {role === "tutor" && (
-                        <NavLink href="/analytics" icon="bx bx-bar-chart-alt-2" label="Analytics" />
+                        <NavLink href="/analytics" icon={<ChartSpline size="sm" />} label="Analytics" />
                     )}
-                    <NavLink href="/payments" icon="bx bx-credit-card-alt" label="Payments" />
-                    <NavLink href="/settings" icon="bx bx-cog" label="Settings" />
+                    <NavLink href="/payments" icon={<CreditCardAlt size="sm" />} label="Payments" />
+                    <NavLink href="/settings" icon={<Cog size="sm" />} label="Settings" />
                 </nav>
 
                 {/* User */}
@@ -126,18 +137,18 @@ export default async function MainLayout({ children }: { children: React.ReactNo
                 <main className="flex-1 overflow-y-auto overflow-x-hidden">{children}</main>
 
                 <nav className="md:hidden flex items-center justify-around border-t border-border bg-bg-white py-2 shrink-0 pb-safe">
-                    <MobileNavLink href="/dashboard" icon="bx bx-dashboard" label="Home" />
+                    <MobileNavLink href="/dashboard" icon={<Dashboard size="sm" />} label="Home" />
                     <MobileNavLink
                         href="/sessions"
-                        icon="bx bx-calendar-event"
+                        icon={<CalendarEvent size="sm" />}
                         label="Sessions"
                         badge={pendingSessionCount}
                     />
                     {role === "student" && (
-                        <MobileNavLink href="/tutors" icon="bx bx-search" label="Search" />
+                        <MobileNavLink href="/tutors" icon={<Search size="sm" />} label="Search" />
                     )}
-                    <MobileNavLink href="/payments" icon="bx bx-credit-card-alt" label="Payments" />
-                    <MobileNavLink href="/profile" icon="bx bx-user" label="Profile" />
+                    <MobileNavLink href="/payments" icon={<CreditCardAlt size="sm" />} label="Payments" />
+                    <MobileNavLink href="/profile" icon={<User size="sm" />} label="Profile" />
                 </nav>
             </div>
         </div>
@@ -151,7 +162,7 @@ function NavLink({
     badge,
 }: {
     href: string;
-    icon: string;
+    icon: ReactNode;
     label: string;
     badge?: number;
 }) {
@@ -161,7 +172,7 @@ function NavLink({
             className="flex items-center gap-3 rounded-[var(--radius-md)] px-3 py-2.5 text-sm text-text-secondary transition-base hover:bg-bg-secondary hover:text-text-primary"
         >
             <span className="relative">
-                <i className={`${icon} text-lg`} />
+                {icon}
                 {badge !== undefined && badge > 0 && (
                     <span className="absolute -top-2 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-0.5 text-[9px] font-bold text-white shadow-sm">
                         {badge > 9 ? "9+" : badge}
@@ -180,7 +191,7 @@ function MobileNavLink({
     badge,
 }: {
     href: string;
-    icon: string;
+    icon: ReactNode;
     label: string;
     badge?: number;
 }) {
@@ -190,7 +201,7 @@ function MobileNavLink({
             className="flex flex-col items-center gap-0.5 px-3 py-1 text-text-secondary relative"
         >
             <span className="relative">
-                <i className={`${icon} text-xl`} />
+                {icon}
                 {badge !== undefined && badge > 0 && (
                     <span className="absolute -top-1.5 -right-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-0.5 text-[9px] font-bold text-white">
                         {badge > 9 ? "9+" : badge}
