@@ -66,7 +66,7 @@ export default async function TutorProfilePage({ params }: PageProps) {
     if (!tutor) notFound();
 
     let recentlyUpdated = false;
-    if (tutor.show_analytics) {
+    if (tutor.show_analytics && currentRole === "student") {
         const { data: recentUpdate } = await supabase
             .from('profile_update_events')
             .select('created_at')
@@ -202,7 +202,7 @@ export default async function TutorProfilePage({ params }: PageProps) {
                                             <span className="text-xs text-text-tertiary">
                                                 📍 {tutor.locality}, {tutor.city}
                                             </span>
-                                            {recentlyUpdated && (
+                                            {recentlyUpdated && currentRole === "student" && (
                                                 <span className="inline-flex items-center gap-1 rounded-[var(--radius-full)] bg-success-light px-2.5 py-1 text-xs font-medium text-success">
                                                     🟢 Recently updated
                                                 </span>

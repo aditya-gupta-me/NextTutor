@@ -141,6 +141,7 @@ export default function SettingsPage() {
                                     className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 ${showAnalytics ? 'bg-accent' : 'bg-bg-tertiary'}`}
                                     role="switch"
                                     aria-checked={showAnalytics}
+                                    aria-label={showAnalytics ? "Disable activity indicator" : "Enable activity indicator"}
                                 >
                                     <span
                                         aria-hidden="true"
