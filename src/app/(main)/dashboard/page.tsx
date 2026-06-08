@@ -1,6 +1,20 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import {
+    PencilSparkles,
+    CalendarEvent,
+    Hourglass,
+    CheckSquare,
+    Group,
+    Star,
+    Search,
+    User,
+    ChevronRight,
+    Rocket,
+    ChartSpline,
+} from "@boxicons/react";
+import type { ReactNode } from "react";
 
 export default async function DashboardPage() {
     const supabase = await createClient();
@@ -194,7 +208,7 @@ export default async function DashboardPage() {
                         <p className="text-sm font-semibold text-text-primary">Complete your profile</p>
                         <p className="text-xs text-text-secondary">Add your location to find tutors near you</p>
                     </div>
-                    <i className="bx bx-chevron-right text-xl text-text-tertiary group-hover:text-accent transition-colors" />
+                    <ChevronRight className="text-text-tertiary group-hover:text-accent transition-colors" size="md" />
                 </Link>
             )}
 
@@ -205,21 +219,21 @@ export default async function DashboardPage() {
                         <StatCard
                             label="Active Tutors"
                             value={String(activePeople)}
-                            icon="bx bx-pencil-sparkles"
+                            icon={<PencilSparkles size="md" />}
                             highlight={activePeople > 0}
                             href="/sessions"
                         />
                         <StatCard
                             label="Upcoming Sessions"
                             value={String(upcomingSessions)}
-                            icon="bx bx-calendar-event"
+                            icon={<CalendarEvent size="md" />}
                             highlight={upcomingSessions > 0}
                             href="/sessions"
                         />
                         <StatCard
                             label="Pending Requests"
                             value={String(pendingCount)}
-                            icon="bx bx-hourglass"
+                            icon={<Hourglass size="md" />}
                             highlight={pendingCount > 0}
                             accentColor="amber"
                             href="/sessions"
@@ -227,7 +241,7 @@ export default async function DashboardPage() {
                         <StatCard
                             label="Completed"
                             value={String(completedSessions)}
-                            icon="bx bx-check-square"
+                            icon={<CheckSquare size="md" />}
                             href="/sessions"
                         />
                     </>
@@ -236,14 +250,14 @@ export default async function DashboardPage() {
                         <StatCard
                             label="Active Students"
                             value={String(activePeople)}
-                            icon="bx bx-group"
+                            icon={<Group size="md" />}
                             highlight={activePeople > 0}
                             href="/sessions"
                         />
                         <StatCard
                             label="Sessions"
                             value={`${upcomingSessions + completedSessions}`}
-                            icon="bx bx-calendar-event"
+                            icon={<CalendarEvent size="md" />}
                             highlight={upcomingSessions > 0}
                             subtitle={upcomingSessions > 0 ? `${upcomingSessions} upcoming` : undefined}
                             href="/sessions"
@@ -251,7 +265,7 @@ export default async function DashboardPage() {
                         <StatCard
                             label="Pending Requests"
                             value={String(pendingCount)}
-                            icon="bx bx-hourglass"
+                            icon={<Hourglass size="md" />}
                             highlight={pendingCount > 0}
                             accentColor="amber"
                             href="/sessions"
@@ -259,7 +273,7 @@ export default async function DashboardPage() {
                         <StatCard
                             label="Avg. Rating"
                             value={avgRating > 0 ? avgRating.toFixed(1) : "—"}
-                            icon="bx bx-star"
+                            icon={<Star size="md" />}
                             highlight={avgRating > 0}
                             subtitle={reviewCount > 0 ? `${reviewCount} review${reviewCount !== 1 ? "s" : ""}` : undefined}
                             href="/reviews"
@@ -275,10 +289,10 @@ export default async function DashboardPage() {
                     className="flex items-center gap-4 rounded-[var(--radius-xl)] border border-border bg-bg-white p-5 mb-8 transition-all hover:shadow-md hover:border-accent/30 group"
                 >
                     <span
-                        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-white text-xl"
+                        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-white"
                         style={{ background: "linear-gradient(135deg, #667eea, #764ba2)" }}
                     >
-                        <i className="bx bx-bar-chart-alt-2" />
+                        <ChartSpline size="md" />
                     </span>
                     <div className="flex-1">
                         <p className="text-sm font-semibold text-text-primary">Profile Analytics</p>
@@ -286,7 +300,7 @@ export default async function DashboardPage() {
                             See how students discover and engage with your profile
                         </p>
                     </div>
-                    <i className="bx bx-chevron-right text-xl text-text-tertiary group-hover:text-accent transition-colors" />
+                    <ChevronRight className="text-xl text-text-tertiary group-hover:text-accent transition-colors" size="md" />
                 </Link>
             )}
 
@@ -300,19 +314,19 @@ export default async function DashboardPage() {
                         <>
                             <QuickAction
                                 href="/tutors"
-                                icon="bx bx-search"
+                                icon={<Search size="sm" />}
                                 title="Find a Tutor"
                                 desc="Search for tutors near you"
                             />
                             <QuickAction
                                 href="/sessions"
-                                icon="bx bx-calendar-event"
+                                icon={<CalendarEvent size="sm" />}
                                 title="My Sessions"
                                 desc="View your session schedule"
                             />
                             <QuickAction
                                 href="/profile/edit"
-                                icon="bx bx-user"
+                                icon={<User size="sm" />}
                                 title="Edit Profile"
                                 desc="Update your details"
                             />
@@ -321,20 +335,20 @@ export default async function DashboardPage() {
                         <>
                             <QuickAction
                                 href="/profile/edit"
-                                icon="bx bx-user"
+                                icon={<User size="sm" />}
                                 title="Edit Profile"
                                 desc="Update your tutor profile"
                             />
                             <QuickAction
                                 href="/sessions"
-                                icon="bx bx-calendar-event"
+                                icon={<CalendarEvent size="sm" />}
                                 title="Session Requests"
                                 desc={pendingCount > 0 ? `${pendingCount} new pending` : "View pending requests"}
                                 badge={pendingCount > 0 ? pendingCount : undefined}
                             />
                             <QuickAction
                                 href="/analytics"
-                                icon="bx bx-bar-chart-alt-2"
+                                icon={<ChartSpline size="sm" />}
                                 title="Profile Analytics"
                                 desc="View your profile performance"
                             />
@@ -349,8 +363,8 @@ export default async function DashboardPage() {
                     Recent Activity
                 </h2>
                 {recentSessions.length === 0 ? (
-                    <div className="rounded-[var(--radius-lg)] border border-border bg-bg-white p-10 text-center">
-                        <i className="bx bx-rocket text-4xl text-text-tertiary mb-3" />
+                    <div className="rounded-[var(--radius-lg)] border border-border bg-bg-white p-10 text-center flex flex-col items-center justify-center">
+                        <Rocket className="text-text-tertiary mb-3" size="lg" />
                         <p className="text-sm font-medium text-text-primary">
                             No activity yet
                         </p>
@@ -396,7 +410,7 @@ function StatCard({
 }: {
     label: string;
     value: string;
-    icon: string;
+    icon: ReactNode;
     highlight?: boolean;
     accentColor?: string;
     subtitle?: string;
@@ -410,7 +424,7 @@ function StatCard({
     const content = (
         <>
             <div className="flex items-center justify-between mb-3">
-                <i className={`${icon} text-2xl ${iconColor}`} />
+                <span className={`text-2xl ${iconColor}`}>{icon}</span>
                 {highlight && (
                     <span className="flex h-2 w-2 rounded-full bg-accent animate-pulse" />
                 )}
@@ -446,7 +460,7 @@ function QuickAction({
     badge,
 }: {
     href: string;
-    icon: string;
+    icon: ReactNode;
     title: string;
     desc: string;
     badge?: number;
@@ -456,8 +470,8 @@ function QuickAction({
             href={href}
             className="flex items-center gap-4 rounded-[var(--radius-lg)] border border-border bg-bg-white p-4 transition-base hover:bg-bg-secondary hover:shadow-[var(--shadow-xs)] relative"
         >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-bg-secondary relative">
-                <i className={`${icon} text-lg text-accent`} />
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-bg-secondary text-accent relative">
+                {icon}
                 {badge && badge > 0 && (
                     <span className="absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white animate-pulse">
                         {badge}

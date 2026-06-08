@@ -61,42 +61,86 @@ export async function GET(request: NextRequest) {
         const prevStartDateStr = prevStartDate.toISOString().split('T')[0];
 
         // Fetch daily stats for current period
-        const { data: dailyStats } = await adminClient
+        const { data: dailyStats, error: dailyStatsError } = await adminClient
             .from('daily_view_stats')
             .select('date, total_views, unique_visitors')
             .eq('tutor_profile_id', tutorProfile.id)
             .gte('date', startDateStr)
             .order('date', { ascending: true });
 
+        if (dailyStatsError) {
+            console.error('[analytics] Error fetching daily stats:', dailyStatsError.message);
+            return NextResponse.json(
+                { error: 'Failed to fetch daily stats', details: dailyStatsError.message },
+                { status: 500 }
+            );
+        }
+
         // Fetch daily stats for previous period (for growth %)
-        const { data: prevStats } = await adminClient
+        const { data: prevStats, error: prevStatsError } = await adminClient
             .from('daily_view_stats')
             .select('total_views')
             .eq('tutor_profile_id', tutorProfile.id)
             .gte('date', prevStartDateStr)
             .lt('date', startDateStr);
 
+        if (prevStatsError) {
+            console.error('[analytics] Error fetching previous stats:', prevStatsError.message);
+            return NextResponse.json(
+                { error: 'Failed to fetch previous period stats', details: prevStatsError.message },
+                { status: 500 }
+            );
+        }
+
         // Fetch profile update events for markers
-        const { data: events } = await adminClient
+        const { data: events, error: eventsError } = await adminClient
             .from('profile_update_events')
             .select('created_at, event_type, description')
             .eq('tutor_profile_id', tutorProfile.id)
             .gte('created_at', startDate.toISOString())
             .order('created_at', { ascending: true });
 
+        if (eventsError) {
+            console.error('[analytics] Error fetching update events:', eventsError.message);
+            return NextResponse.json(
+                { error: 'Failed to fetch update events', details: eventsError.message },
+                { status: 500 }
+            );
+        }
+
         // Also get today's live count from raw profile_views (not yet aggregated)
         const todayStr = new Date().toISOString().split('T')[0];
-        const { count: todayViews } = await adminClient
+        const todayStart = `${todayStr}T00:00:00.000Z`;
+
+        const { count: todayViewsCount, error: todayViewsError } = await adminClient
             .from('profile_views')
             .select('*', { count: 'exact', head: true })
             .eq('tutor_profile_id', tutorProfile.id)
-            .gte('created_at', `${todayStr}T00:00:00`);
+            .gte('created_at', todayStart);
 
-        const { data: todayUniqueRaw } = await adminClient
+        if (todayViewsError) {
+            console.error('[analytics] Error fetching today\'s view count:', todayViewsError.message);
+            return NextResponse.json(
+                { error: 'Failed to fetch today\'s view count', details: todayViewsError.message },
+                { status: 500 }
+            );
+        }
+
+        const todayViews = todayViewsCount ?? 0;
+
+        const { data: todayUniqueRaw, error: todayUniqueError } = await adminClient
             .from('profile_views')
             .select('viewer_id, viewer_fingerprint')
             .eq('tutor_profile_id', tutorProfile.id)
-            .gte('created_at', `${todayStr}T00:00:00`);
+            .gte('created_at', todayStart);
+
+        if (todayUniqueError) {
+            console.error('[analytics] Error fetching today\'s unique visitors:', todayUniqueError.message);
+            return NextResponse.json(
+                { error: 'Failed to fetch today\'s unique visitors', details: todayUniqueError.message },
+                { status: 500 }
+            );
+        }
 
         const todayUnique = new Set(
             (todayUniqueRaw || []).map(r => r.viewer_id || r.viewer_fingerprint)
@@ -112,7 +156,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Add today's live data
-        if (todayViews && todayViews > 0) {
+        if (todayViews > 0) {
             dailyMap.set(todayStr, {
                 views: todayViews,
                 unique: todayUnique,

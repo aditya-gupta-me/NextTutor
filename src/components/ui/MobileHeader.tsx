@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { User, Cog, LoaderLinesAlt, Power } from "@boxicons/react";
 
 interface MobileHeaderProps {
     avatarUrl: string | null;
@@ -93,7 +94,7 @@ export default function MobileHeader({ avatarUrl, name, initials, role }: Mobile
                                 onClick={() => setIsOpen(false)}
                                 className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-text-secondary transition-base hover:bg-bg-secondary hover:text-text-primary"
                             >
-                                <i className="bx bx-user text-base text-text-tertiary" />
+                                <User size="xs" className="text-text-tertiary" />
                                 My Profile
                             </Link>
 
@@ -102,7 +103,7 @@ export default function MobileHeader({ avatarUrl, name, initials, role }: Mobile
                                 onClick={() => setIsOpen(false)}
                                 className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-text-secondary transition-base hover:bg-bg-secondary hover:text-text-primary"
                             >
-                                <i className="bx bx-cog text-base text-text-tertiary" />
+                                <Cog size="xs" className="text-text-tertiary" />
                                 Settings
                             </Link>
                         </div>
@@ -117,12 +118,12 @@ export default function MobileHeader({ avatarUrl, name, initials, role }: Mobile
                         >
                             {loggingOut ? (
                                 <>
-                                    <i className="bx bx-loader-alt animate-spin text-base" />
+                                    <LoaderLinesAlt size="xs" className="animate-spin" />
                                     Logging out...
                                 </>
                             ) : (
                                 <>
-                                    <i className="bx bx-log-out text-base" />
+                                    <Power size="xs" />
                                     Log Out
                                 </>
                             )}
