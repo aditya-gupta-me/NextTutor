@@ -27,11 +27,19 @@ export async function GET(request: NextRequest) {
 
         const adminClient = getAdminClient();
 
-        const { data: tutorProfile } = await adminClient
+        const { data: tutorProfile, error: tutorProfileError } = await adminClient
             .from('tutor_profiles')
             .select('show_analytics')
             .eq('id', tutorProfileId)
             .single();
+
+        if (tutorProfileError) {
+            console.error('[tutor-activity] Error fetching tutor profile:', tutorProfileError.message);
+            return NextResponse.json(
+                { error: 'Failed to fetch tutor profile', details: tutorProfileError.message },
+                { status: 500 }
+            );
+        }
 
         if (!tutorProfile || !tutorProfile.show_analytics) {
             return NextResponse.json({ daily: [] });
@@ -39,23 +47,39 @@ export async function GET(request: NextRequest) {
 
         // Get last 30 days of aggregated stats
         const startDate = new Date();
-        startDate.setDate(startDate.getDate() - 30);
+        startDate.setDate(startDate.getDate() - 29);
         const startDateStr = startDate.toISOString().split('T')[0];
 
-        const { data: dailyStats } = await adminClient
+        const { data: dailyStats, error: dailyStatsError } = await adminClient
             .from('daily_view_stats')
             .select('date, total_views')
             .eq('tutor_profile_id', tutorProfileId)
             .gte('date', startDateStr)
             .order('date', { ascending: true });
 
+        if (dailyStatsError) {
+            console.error('[tutor-activity] Error fetching daily stats:', dailyStatsError.message);
+            return NextResponse.json(
+                { error: 'Failed to fetch daily stats', details: dailyStatsError.message },
+                { status: 500 }
+            );
+        }
+
         // Also get today's live count
         const todayStr = new Date().toISOString().split('T')[0];
-        const { count: todayCount } = await adminClient
+        const { count: todayCount, error: todayCountError } = await adminClient
             .from('profile_views')
             .select('*', { count: 'exact', head: true })
             .eq('tutor_profile_id', tutorProfileId)
             .gte('created_at', `${todayStr}T00:00:00.000Z`);
+
+        if (todayCountError) {
+            console.error('[tutor-activity] Error fetching today\'s count:', todayCountError.message);
+            return NextResponse.json(
+                { error: 'Failed to fetch today\'s count', details: todayCountError.message },
+                { status: 500 }
+            );
+        }
 
         // Fill all 30 days with data
         const dailyMap = new Map<string, number>();
