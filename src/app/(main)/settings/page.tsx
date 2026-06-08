@@ -1,12 +1,64 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 export default function SettingsPage() {
     const router = useRouter();
     const [loggingOut, setLoggingOut] = useState(false);
+    const [role, setRole] = useState<string | null>(null);
+    const [tutorProfileId, setTutorProfileId] = useState<string | null>(null);
+    const [showAnalytics, setShowAnalytics] = useState(true);
+    const [updating, setUpdating] = useState(false);
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            const supabase = createClient();
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+
+            const { data: userProfile } = await supabase
+                .from("users")
+                .select("role")
+                .eq("id", user.id)
+                .single();
+
+            if (userProfile?.role === "tutor") {
+                setRole("tutor");
+                const { data: tutorProfile } = await supabase
+                    .from("tutor_profiles")
+                    .select("id, show_analytics")
+                    .eq("user_id", user.id)
+                    .single();
+                
+                if (tutorProfile) {
+                    setTutorProfileId(tutorProfile.id);
+                    setShowAnalytics(tutorProfile.show_analytics !== false);
+                }
+            }
+        };
+        fetchSettings();
+    }, []);
+
+    const handleToggleAnalytics = async () => {
+        if (!tutorProfileId || updating) return;
+        setUpdating(true);
+        const newValue = !showAnalytics;
+        setShowAnalytics(newValue);
+        
+        const supabase = createClient();
+        const { error } = await supabase
+            .from("tutor_profiles")
+            .update({ show_analytics: newValue })
+            .eq("id", tutorProfileId);
+            
+        if (error) {
+            setShowAnalytics(!newValue);
+            console.error("Failed to update settings", error);
+        }
+        setUpdating(false);
+    };
 
     const handleLogout = async () => {
         setLoggingOut(true);
@@ -65,6 +117,40 @@ export default function SettingsPage() {
                         </div>
                     </div>
                 </div>
+
+                {/* Privacy section (Tutors Only) */}
+                {role === "tutor" && (
+                    <div className="rounded-[var(--radius-xl)] border border-border bg-bg-white p-6">
+                        <h2 className="text-lg font-semibold text-text-primary mb-4">
+                            Privacy Controls
+                        </h2>
+
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between py-3">
+                                <div>
+                                    <div className="text-sm font-medium text-text-primary">
+                                        Show Activity Indicator on Public Profile
+                                    </div>
+                                    <div className="text-xs text-text-secondary mt-1">
+                                        When enabled, students will see a trend graph of your profile views and a recently updated badge. No exact numbers are shown.
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={handleToggleAnalytics}
+                                    disabled={updating}
+                                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 ${showAnalytics ? 'bg-accent' : 'bg-bg-tertiary'}`}
+                                    role="switch"
+                                    aria-checked={showAnalytics}
+                                >
+                                    <span
+                                        aria-hidden="true"
+                                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${showAnalytics ? 'translate-x-5' : 'translate-x-0'}`}
+                                    />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Danger zone */}
                 <div className="rounded-[var(--radius-xl)] border border-error/20 bg-bg-white p-6">

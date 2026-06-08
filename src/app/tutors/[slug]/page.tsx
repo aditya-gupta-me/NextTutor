@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const supabase = await createClient();
     const { data: tutor } = await supabase
         .from("tutor_profiles")
-        .select("subjects, city, user_id, users!inner(full_name)")
+        .select("subjects, city, user_id, users!inner(full_name), show_analytics")
         .eq("slug", slug)
         .single();
 
@@ -57,25 +57,28 @@ export default async function TutorProfilePage({ params }: PageProps) {
         .select(`
       *,
       users!inner(full_name, avatar_url, email, phone),
-      tutor_faqs(id, question, answer, display_order)
+      tutor_faqs(id, question, answer, display_order),
+      show_analytics
     `)
         .eq("slug", slug)
         .single();
 
     if (!tutor) notFound();
 
-    // Check if tutor recently updated their profile (within 14 days)
-    const { data: recentUpdate } = await supabase
-        .from('profile_update_events')
-        .select('created_at')
-        .eq('tutor_profile_id', tutor.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+    let recentlyUpdated = false;
+    if (tutor.show_analytics) {
+        const { data: recentUpdate } = await supabase
+            .from('profile_update_events')
+            .select('created_at')
+            .eq('tutor_profile_id', tutor.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
 
-    const recentlyUpdated = recentUpdate
-        ? (Date.now() - new Date(recentUpdate.created_at).getTime()) < 14 * 24 * 60 * 60 * 1000
-        : false;
+        recentlyUpdated = recentUpdate
+            ? (Date.now() - new Date(recentUpdate.created_at).getTime()) < 14 * 24 * 60 * 60 * 1000
+            : false;
+    }
 
     const user = (tutor as unknown as { users: { full_name: string; avatar_url: string | null; email: string; phone: string } }).users;
     const faqs = (tutor.tutor_faqs || []) as { id: string; question: string; answer: string; display_order: number }[];
@@ -287,7 +290,7 @@ export default async function TutorProfilePage({ params }: PageProps) {
                     </div>
 
                     {/* Activity Graph (student-facing, no exact numbers) */}
-                    {currentRole === "student" && (
+                    {currentRole === "student" && tutor.show_analytics && (
                         <TutorActivityGraph tutorProfileId={tutor.id} />
                     )}
 

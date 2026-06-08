@@ -27,8 +27,15 @@ export async function GET(request: NextRequest) {
 
         const adminClient = getAdminClient();
 
-        // Check if tutor has analytics visibility enabled (future: settings table)
-        // For now, all tutors show activity by default
+        const { data: tutorProfile } = await adminClient
+            .from('tutor_profiles')
+            .select('show_analytics')
+            .eq('id', tutorProfileId)
+            .single();
+
+        if (!tutorProfile || !tutorProfile.show_analytics) {
+            return NextResponse.json({ daily: [] });
+        }
 
         // Get last 30 days of aggregated stats
         const startDate = new Date();

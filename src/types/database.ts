@@ -51,6 +51,7 @@ export interface TutorProfile {
     slug: string;
     avg_rating: number;
     review_count: number;
+    show_analytics: boolean;
     created_at: string;
 }
 
