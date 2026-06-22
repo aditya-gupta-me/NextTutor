@@ -45,7 +45,7 @@ export default function Footer() {
                             </li>
                             <li>
                                 <Link
-                                    href="#"
+                                    href="/faqs"
                                     className="text-sm text-text-secondary transition-base hover:text-text-primary"
                                 >
                                     FAQs
@@ -76,7 +76,7 @@ export default function Footer() {
                             </li>
                             <li>
                                 <Link
-                                    href="#"
+                                    href="/success-stories"
                                     className="text-sm text-text-secondary transition-base hover:text-text-primary"
                                 >
                                     Success Stories
@@ -91,7 +91,7 @@ export default function Footer() {
                         <ul className="flex flex-col gap-2">
                             <li>
                                 <Link
-                                    href="#"
+                                    href="/about"
                                     className="text-sm text-text-secondary transition-base hover:text-text-primary"
                                 >
                                     About Us
@@ -99,7 +99,7 @@ export default function Footer() {
                             </li>
                             <li>
                                 <Link
-                                    href="#"
+                                    href="/privacy"
                                     className="text-sm text-text-secondary transition-base hover:text-text-primary"
                                 >
                                     Privacy Policy
@@ -107,7 +107,7 @@ export default function Footer() {
                             </li>
                             <li>
                                 <Link
-                                    href="#"
+                                    href="/terms"
                                     className="text-sm text-text-secondary transition-base hover:text-text-primary"
                                 >
                                     Terms of Service
@@ -115,7 +115,7 @@ export default function Footer() {
                             </li>
                             <li>
                                 <Link
-                                    href="#"
+                                    href="/contact"
                                     className="text-sm text-text-secondary transition-base hover:text-text-primary"
                                 >
                                     Contact
