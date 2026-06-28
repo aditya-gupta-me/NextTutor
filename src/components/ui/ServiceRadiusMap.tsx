@@ -34,6 +34,9 @@ export default function ServiceRadiusMap({
     const [mapError, setMapError] = useState(false);
     const [mapLoaded, setMapLoaded] = useState(false);
 
+    // Clamp and normalize radiusKm to ensure it's within bounds
+    const normalizedRadiusKm = Math.max(minRadius, Math.min(maxRadius, radiusKm || minRadius));
+
     // Initialize map
     useEffect(() => {
         if (!mapRef.current || lat === null || lng === null) return;
@@ -82,7 +85,7 @@ export default function ServiceRadiusMap({
                 const circle = new maps.Circle({
                     map,
                     center,
-                    radius: radiusKm * 1000,
+                    radius: normalizedRadiusKm * 1000,
                     fillColor: "#667eea",
                     fillOpacity: 0.08,
                     strokeColor: "#667eea",
@@ -95,7 +98,7 @@ export default function ServiceRadiusMap({
                 circleRef.current = circle;
 
                 // Fit bounds to circle
-                fitBoundsToRadius(maps, map, lat, lng, radiusKm);
+                fitBoundsToRadius(maps, map, lat, lng, normalizedRadiusKm);
 
                 setMapLoaded(true);
             })
@@ -113,13 +116,13 @@ export default function ServiceRadiusMap({
         if (!circleRef.current || !mapInstanceRef.current || !mapLoaded) return;
         if (lat === null || lng === null) return;
 
-        circleRef.current.setRadius(radiusKm * 1000);
+        circleRef.current.setRadius(normalizedRadiusKm * 1000);
 
         // Re-fit bounds smoothly
         if (typeof google !== "undefined") {
-            fitBoundsToRadius(google.maps, mapInstanceRef.current, lat, lng, radiusKm);
+            fitBoundsToRadius(google.maps, mapInstanceRef.current, lat, lng, normalizedRadiusKm);
         }
-    }, [radiusKm, mapLoaded, lat, lng]);
+    }, [normalizedRadiusKm, mapLoaded, lat, lng]);
 
     const handleSliderChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -147,7 +150,7 @@ export default function ServiceRadiusMap({
                 {editable && (
                     <div className="mt-4 opacity-50 pointer-events-none">
                         <SliderUI
-                            value={radiusKm}
+                            value={normalizedRadiusKm}
                             min={minRadius}
                             max={maxRadius}
                             disabled
@@ -178,7 +181,7 @@ export default function ServiceRadiusMap({
             <div className="bg-bg-white border-t border-border px-4 py-3">
                 {editable ? (
                     <SliderUI
-                        value={radiusKm}
+                        value={normalizedRadiusKm}
                         min={minRadius}
                         max={maxRadius}
                         onChange={handleSliderChange}
@@ -187,7 +190,7 @@ export default function ServiceRadiusMap({
                     <div className="flex items-center gap-2">
                         <i className="bx bx-target-lock text-accent text-sm" />
                         <span className="text-xs text-text-secondary">
-                            Service area: {radiusKm} km radius
+                            Service area: {normalizedRadiusKm} km radius
                         </span>
                     </div>
                 )}
@@ -217,7 +220,7 @@ function SliderUI({
     return (
         <div>
             <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-semibold text-text-primary flex items-center gap-1.5">
+                <label htmlFor="service-radius-slider" className="text-xs font-semibold text-text-primary flex items-center gap-1.5">
                     <i className="bx bx-target-lock text-accent text-sm" />
                     Service Radius
                 </label>
@@ -226,6 +229,7 @@ function SliderUI({
                 </span>
             </div>
             <input
+                id="service-radius-slider"
                 type="range"
                 min={min}
                 max={max}

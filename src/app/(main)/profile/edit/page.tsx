@@ -39,7 +39,7 @@ export default function ProfileEditPage() {
     const [locality, setLocality] = useState("");
     const [city, setCity] = useState("");
     const [pincode, setPincode] = useState("");
-    const [serviceRadius, setServiceRadius] = useState("5");
+    const [serviceRadius, setServiceRadius] = useState("4");
     const [availableSeats, setAvailableSeats] = useState("10");
     const [tutorLat, setTutorLat] = useState<number | null>(null);
     const [tutorLng, setTutorLng] = useState<number | null>(null);
@@ -249,7 +249,7 @@ export default function ProfileEditPage() {
                     setLocality(tutorProfile.locality || "");
                     setCity(tutorProfile.city || "");
                     setPincode(tutorProfile.pincode || "");
-                    setServiceRadius(tutorProfile.service_radius_km?.toString() || "5");
+                    setServiceRadius(tutorProfile.service_radius_km?.toString() || "4");
                     setAvailableSeats(tutorProfile.available_seats?.toString() || "10");
 
                     // Load saved coordinates from PostGIS via RPC
@@ -1014,7 +1014,11 @@ export default function ProfileEditPage() {
                                         <input
                                             type="text"
                                             value={locality}
-                                            onChange={(e) => setLocality(e.target.value)}
+                                            onChange={(e) => {
+                                                setLocality(e.target.value);
+                                                setTutorLat(null);
+                                                setTutorLng(null);
+                                            }}
                                             placeholder="e.g. Sector 62"
                                             className="form-input !pl-10"
                                         />
@@ -1023,7 +1027,11 @@ export default function ProfileEditPage() {
                                         <input
                                             type="text"
                                             value={city}
-                                            onChange={(e) => setCity(e.target.value)}
+                                            onChange={(e) => {
+                                                setCity(e.target.value);
+                                                setTutorLat(null);
+                                                setTutorLng(null);
+                                            }}
                                             placeholder="e.g. Noida"
                                             className="form-input !pl-10"
                                         />
@@ -1034,7 +1042,11 @@ export default function ProfileEditPage() {
                                         <input
                                             type="text"
                                             value={pincode}
-                                            onChange={(e) => setPincode(e.target.value)}
+                                            onChange={(e) => {
+                                                setPincode(e.target.value);
+                                                setTutorLat(null);
+                                                setTutorLng(null);
+                                            }}
                                             placeholder="201301"
                                             maxLength={6}
                                             className="form-input !pl-10"
