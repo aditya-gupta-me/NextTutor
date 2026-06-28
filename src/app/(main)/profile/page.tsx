@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import ServiceRadiusMap from "@/components/ui/ServiceRadiusMap";
 
 export default async function ProfilePage() {
     const supabase = await createClient();
@@ -31,6 +32,9 @@ export default async function ProfilePage() {
     let studentData: Record<string, unknown> | null = null;
     let parentData: Record<string, unknown> | null = null;
 
+    let tutorLat: number | null = null;
+    let tutorLng: number | null = null;
+
     if (role === "tutor") {
         const { data } = await supabase
             .from("tutor_profiles")
@@ -43,6 +47,20 @@ export default async function ProfilePage() {
             };
             tutorData = rest;
             tutorFaqs = faqs || [];
+
+            // Extract lat/lng from PostGIS via RPC (same pattern as public profile)
+            try {
+                const { data: locData } = await supabase
+                    .rpc("get_tutor_coords", { tutor_id: data.id })
+                    .single();
+                const coords = locData as { lat: number; lng: number } | null;
+                if (coords) {
+                    tutorLat = coords.lat;
+                    tutorLng = coords.lng;
+                }
+            } catch {
+                // location not set — skip map
+            }
         }
     } else {
         const { data } = await supabase
@@ -288,6 +306,16 @@ export default async function ProfilePage() {
                         <InfoRow icon="bx-buildings" label="Locality" value={tutorData?.locality as string} />
                         <InfoRow icon="bx-city" label="City" value={tutorData?.city as string} />
                         <InfoRow icon="bx-location-pin" label="Pincode" value={tutorData?.pincode as string} />
+
+                        {/* Service area map */}
+                        <div className="mt-4">
+                            <ServiceRadiusMap
+                                lat={tutorLat}
+                                lng={tutorLng}
+                                radiusKm={(tutorData?.service_radius_km as number) || 4}
+                                tutorName={profile.full_name}
+                            />
+                        </div>
                     </ProfileSection>
 
                     {/* FAQs */}

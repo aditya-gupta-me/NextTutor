@@ -7,6 +7,7 @@ import { SUBJECTS, FAQ_TEMPLATES } from "@/lib/constants";
 import InlineAlert from "@/components/ui/InlineAlert";
 import AvatarUpload from "@/components/ui/AvatarUpload";
 import { useToast } from "@/components/ui/ToastContext";
+import ServiceRadiusMap from "@/components/ui/ServiceRadiusMap";
 
 export default function ProfileEditPage() {
     const router = useRouter();
@@ -38,7 +39,7 @@ export default function ProfileEditPage() {
     const [locality, setLocality] = useState("");
     const [city, setCity] = useState("");
     const [pincode, setPincode] = useState("");
-    const [serviceRadius, setServiceRadius] = useState("5");
+    const [serviceRadius, setServiceRadius] = useState("4");
     const [availableSeats, setAvailableSeats] = useState("10");
     const [tutorLat, setTutorLat] = useState<number | null>(null);
     const [tutorLng, setTutorLng] = useState<number | null>(null);
@@ -248,8 +249,22 @@ export default function ProfileEditPage() {
                     setLocality(tutorProfile.locality || "");
                     setCity(tutorProfile.city || "");
                     setPincode(tutorProfile.pincode || "");
-                    setServiceRadius(tutorProfile.service_radius_km?.toString() || "5");
+                    setServiceRadius(tutorProfile.service_radius_km?.toString() || "4");
                     setAvailableSeats(tutorProfile.available_seats?.toString() || "10");
+
+                    // Load saved coordinates from PostGIS via RPC
+                    try {
+                        const { data: locData } = await supabase
+                            .rpc("get_tutor_coords", { tutor_id: tutorProfile.id })
+                            .single();
+                        const coords = locData as { lat: number; lng: number } | null;
+                        if (coords) {
+                            setTutorLat(coords.lat);
+                            setTutorLng(coords.lng);
+                        }
+                    } catch {
+                        // location not set yet
+                    }
 
                     // Load FAQs
                     const faqs = (tutorProfile as unknown as { tutor_faqs: { question: string; answer: string }[] }).tutor_faqs || [];
@@ -390,7 +405,7 @@ export default function ProfileEditPage() {
                     locality,
                     city,
                     pincode,
-                    service_radius_km: parseInt(serviceRadius) || 5,
+                    service_radius_km: Math.max(1, Math.min(15, parseInt(serviceRadius) || 4)),
                     available_seats: parseInt(availableSeats) || 10,
                     slug,
                 };
@@ -999,7 +1014,11 @@ export default function ProfileEditPage() {
                                         <input
                                             type="text"
                                             value={locality}
-                                            onChange={(e) => setLocality(e.target.value)}
+                                            onChange={(e) => {
+                                                setLocality(e.target.value);
+                                                setTutorLat(null);
+                                                setTutorLng(null);
+                                            }}
                                             placeholder="e.g. Sector 62"
                                             className="form-input !pl-10"
                                         />
@@ -1008,28 +1027,28 @@ export default function ProfileEditPage() {
                                         <input
                                             type="text"
                                             value={city}
-                                            onChange={(e) => setCity(e.target.value)}
+                                            onChange={(e) => {
+                                                setCity(e.target.value);
+                                                setTutorLat(null);
+                                                setTutorLng(null);
+                                            }}
                                             placeholder="e.g. Noida"
                                             className="form-input !pl-10"
                                         />
                                     </FormField>
                                 </div>
-                                <div className="grid grid-cols-3 gap-4">
+                                <div className="grid grid-cols-2 gap-4">
                                     <FormField label="Pincode" icon="bx-location-pin">
                                         <input
                                             type="text"
                                             value={pincode}
-                                            onChange={(e) => setPincode(e.target.value)}
+                                            onChange={(e) => {
+                                                setPincode(e.target.value);
+                                                setTutorLat(null);
+                                                setTutorLng(null);
+                                            }}
                                             placeholder="201301"
                                             maxLength={6}
-                                            className="form-input !pl-10"
-                                        />
-                                    </FormField>
-                                    <FormField label="Radius (km)" icon="bx-diameter">
-                                        <input
-                                            type="number"
-                                            value={serviceRadius}
-                                            onChange={(e) => setServiceRadius(e.target.value)}
                                             className="form-input !pl-10"
                                         />
                                     </FormField>
@@ -1042,6 +1061,17 @@ export default function ProfileEditPage() {
                                         />
                                     </FormField>
                                 </div>
+
+                                {/* Service radius map + slider */}
+                                <ServiceRadiusMap
+                                    lat={tutorLat}
+                                    lng={tutorLng}
+                                    radiusKm={parseInt(serviceRadius) || 4}
+                                    editable
+                                    onRadiusChange={(km) => setServiceRadius(km.toString())}
+                                    minRadius={1}
+                                    maxRadius={15}
+                                />
                             </div>
                         </ProfileSection>
 
