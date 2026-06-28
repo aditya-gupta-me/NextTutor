@@ -7,6 +7,7 @@ import { SUBJECTS, FAQ_TEMPLATES } from "@/lib/constants";
 import InlineAlert from "@/components/ui/InlineAlert";
 import AvatarUpload from "@/components/ui/AvatarUpload";
 import { useToast } from "@/components/ui/ToastContext";
+import ServiceRadiusMap from "@/components/ui/ServiceRadiusMap";
 
 export default function ProfileEditPage() {
     const router = useRouter();
@@ -251,6 +252,20 @@ export default function ProfileEditPage() {
                     setServiceRadius(tutorProfile.service_radius_km?.toString() || "5");
                     setAvailableSeats(tutorProfile.available_seats?.toString() || "10");
 
+                    // Load saved coordinates from PostGIS via RPC
+                    try {
+                        const { data: locData } = await supabase
+                            .rpc("get_tutor_coords", { tutor_id: tutorProfile.id })
+                            .single();
+                        const coords = locData as { lat: number; lng: number } | null;
+                        if (coords) {
+                            setTutorLat(coords.lat);
+                            setTutorLng(coords.lng);
+                        }
+                    } catch {
+                        // location not set yet
+                    }
+
                     // Load FAQs
                     const faqs = (tutorProfile as unknown as { tutor_faqs: { question: string; answer: string }[] }).tutor_faqs || [];
                     const answers: Record<string, string> = {};
@@ -390,7 +405,7 @@ export default function ProfileEditPage() {
                     locality,
                     city,
                     pincode,
-                    service_radius_km: parseInt(serviceRadius) || 5,
+                    service_radius_km: Math.max(1, Math.min(15, parseInt(serviceRadius) || 4)),
                     available_seats: parseInt(availableSeats) || 10,
                     slug,
                 };
@@ -1014,7 +1029,7 @@ export default function ProfileEditPage() {
                                         />
                                     </FormField>
                                 </div>
-                                <div className="grid grid-cols-3 gap-4">
+                                <div className="grid grid-cols-2 gap-4">
                                     <FormField label="Pincode" icon="bx-location-pin">
                                         <input
                                             type="text"
@@ -1022,14 +1037,6 @@ export default function ProfileEditPage() {
                                             onChange={(e) => setPincode(e.target.value)}
                                             placeholder="201301"
                                             maxLength={6}
-                                            className="form-input !pl-10"
-                                        />
-                                    </FormField>
-                                    <FormField label="Radius (km)" icon="bx-diameter">
-                                        <input
-                                            type="number"
-                                            value={serviceRadius}
-                                            onChange={(e) => setServiceRadius(e.target.value)}
                                             className="form-input !pl-10"
                                         />
                                     </FormField>
@@ -1042,6 +1049,17 @@ export default function ProfileEditPage() {
                                         />
                                     </FormField>
                                 </div>
+
+                                {/* Service radius map + slider */}
+                                <ServiceRadiusMap
+                                    lat={tutorLat}
+                                    lng={tutorLng}
+                                    radiusKm={parseInt(serviceRadius) || 4}
+                                    editable
+                                    onRadiusChange={(km) => setServiceRadius(km.toString())}
+                                    minRadius={1}
+                                    maxRadius={15}
+                                />
                             </div>
                         </ProfileSection>
 
