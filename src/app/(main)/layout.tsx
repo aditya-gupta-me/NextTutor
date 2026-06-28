@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import MobileHeader from "@/components/ui/MobileHeader";
+import { NavLink, MobileNavLink } from "@/components/ui/NavigationLinks";
 import {
     Dashboard,
     User,
@@ -152,63 +153,5 @@ export default async function MainLayout({ children }: { children: React.ReactNo
                 </nav>
             </div>
         </div>
-    );
-}
-
-function NavLink({
-    href,
-    icon,
-    label,
-    badge,
-}: {
-    href: string;
-    icon: ReactNode;
-    label: string;
-    badge?: number;
-}) {
-    return (
-        <Link
-            href={href}
-            className="flex items-center gap-3 rounded-[var(--radius-md)] px-3 py-2.5 text-sm text-text-secondary transition-base hover:bg-bg-secondary hover:text-text-primary"
-        >
-            <span className="relative">
-                {icon}
-                {badge !== undefined && badge > 0 && (
-                    <span className="absolute -top-2 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-0.5 text-[9px] font-bold text-white shadow-sm">
-                        {badge > 9 ? "9+" : badge}
-                    </span>
-                )}
-            </span>
-            <span className="flex-1">{label}</span>
-        </Link>
-    );
-}
-
-function MobileNavLink({
-    href,
-    icon,
-    label,
-    badge,
-}: {
-    href: string;
-    icon: ReactNode;
-    label: string;
-    badge?: number;
-}) {
-    return (
-        <Link
-            href={href}
-            className="flex flex-col items-center gap-0.5 px-3 py-1 text-text-secondary relative"
-        >
-            <span className="relative">
-                {icon}
-                {badge !== undefined && badge > 0 && (
-                    <span className="absolute -top-1.5 -right-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-0.5 text-[9px] font-bold text-white">
-                        {badge > 9 ? "9+" : badge}
-                    </span>
-                )}
-            </span>
-            <span className="text-[10px]">{label}</span>
-        </Link>
     );
 }
