@@ -2,6 +2,39 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ServiceRadiusMap from "@/components/ui/ServiceRadiusMap";
+import {
+    Body,
+    BookBookmark,
+    BookOpen,
+    BookAlt,
+    BuildingHouse,
+    Buildings,
+    Calendar,
+    Chair,
+    City,
+    Diameter,
+    EditAlt,
+    Education,
+    Envelope,
+    Group,
+    Head,
+    Heart,
+    HelpCircle,
+    Home,
+    InfoCircle,
+    LocationPin,
+    MapIcon,
+    PencilSparkles,
+    Phone,
+    Rocket,
+    Rupee,
+    Clock,
+    Trophy,
+    UniversalAccess,
+    User,
+    UserSquare,
+} from "@boxicons/react";
+import type { ReactNode } from "react";
 
 export default async function ProfilePage() {
     const supabase = await createClient();
@@ -160,11 +193,14 @@ export default async function ProfilePage() {
                                             : "linear-gradient(135deg, #2F80ED, #56CCF2)",
                                     }}
                                 >
-                                    <i className={`bx ${role === "tutor" ? "bx-pencil-sparkles" : "bx-book-reader"} text-sm`} />
+                                    {role === "tutor"
+                                        ? <PencilSparkles size="sm" color="white" />
+                                        : <BookAlt size="sm" color="white" />
+                                    }
                                     {role}
                                 </span>
                                 <span className="inline-flex items-center gap-1 text-xs text-text-tertiary">
-                                    <i className="bx bx-calendar text-sm" /> Joined {joinDate}
+                                    <Calendar size="sm" /> Joined {joinDate}
                                 </span>
                             </div>
                         </div>
@@ -174,7 +210,7 @@ export default async function ProfilePage() {
                             href="/profile/edit"
                             className="shrink-0 inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-accent px-5 py-2.5 text-sm font-medium text-white transition-base hover:bg-accent-hover self-start sm:self-end"
                         >
-                            <i className="bx bx-edit-alt" /> Edit Profile
+                            <EditAlt size="sm" color="white" /> Edit Profile
                         </Link>
                     </div>
 
@@ -182,13 +218,13 @@ export default async function ProfilePage() {
                     <div className="flex flex-wrap gap-2 mt-4">
                         {(profile.email || user.email) && (
                             <span className="inline-flex items-center gap-1.5 rounded-[var(--radius-full)] bg-bg-secondary px-3 py-1.5 text-xs text-text-secondary">
-                                <i className="bx bx-envelope text-sm text-accent" />
+                                <Envelope size="sm" className="text-accent" />
                                 {profile.email || user.email}
                             </span>
                         )}
                         {(profile.phone || user.phone) && (
                             <span className="inline-flex items-center gap-1.5 rounded-[var(--radius-full)] bg-bg-secondary px-3 py-1.5 text-xs text-text-secondary">
-                                <i className="bx bx-phone text-sm text-accent" />
+                                <Phone size="sm" className="text-accent" />
                                 {profile.phone || user.phone}
                             </span>
                         )}
@@ -201,7 +237,7 @@ export default async function ProfilePage() {
                 <div className="rounded-[var(--radius-xl)] border border-border bg-bg-white p-5 mb-6">
                     <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
-                            <i className="bx bx-trophy text-lg text-warning" />
+                            <Trophy size="sm" className="text-warning" />
                             <span className="text-sm font-semibold text-text-primary">
                                 Profile Strength
                             </span>
@@ -239,7 +275,7 @@ export default async function ProfilePage() {
             {role === "tutor" && (
                 <>
                     {/* Subjects as colorful chips */}
-                    <ProfileSection icon="bx-book-open" title="Subjects & Expertise">
+                    <ProfileSection icon={<BookOpen size="sm" />} title="Subjects & Expertise">
                         {(tutorData?.subjects as string[])?.length ? (
                             <div className="flex flex-wrap gap-2">
                                 {(tutorData!.subjects as string[]).map((subject, i) => (
@@ -252,7 +288,7 @@ export default async function ProfilePage() {
                                             borderColor: SUBJECT_COLORS[i % SUBJECT_COLORS.length].border,
                                         }}
                                     >
-                                        <i className="bx bx-book-bookmark text-sm" />
+                                        <BookBookmark size="sm" />
                                         {subject}
                                     </span>
                                 ))}
@@ -263,19 +299,19 @@ export default async function ProfilePage() {
                     </ProfileSection>
 
                     {/* Teaching info */}
-                    <ProfileSection icon="bx-head" title="My Details">
+                    <ProfileSection icon={<Head size="sm" />} title="My Details">
                         <div className="grid grid-cols-2 gap-3">
-                            <MiniCard icon="bx-education" label="Qualification" value={tutorData?.qualification as string} />
-                            <MiniCard icon="bx-universal-access" label="Gender" value={tutorData?.gender as string} />
-                            <MiniCard icon="bx-body" label="Age" value={tutorData?.age ? `${tutorData.age} yrs` : null} />
-                            <MiniCard icon="bx-chair" label="Available Seats" value={tutorData?.available_seats?.toString()} highlight />
-                            <MiniCard icon="bx-diameter" label="Service Radius" value={tutorData?.service_radius_km ? `${tutorData.service_radius_km} km` : null} />
+                            <MiniCard icon={<Education size="sm" />} label="Qualification" value={tutorData?.qualification as string} />
+                            <MiniCard icon={<UniversalAccess size="sm" />} label="Gender" value={tutorData?.gender as string} />
+                            <MiniCard icon={<Body size="sm" />} label="Age" value={tutorData?.age ? `${tutorData.age} yrs` : null} />
+                            <MiniCard icon={<Chair size="sm" />} label="Available Seats" value={tutorData?.available_seats?.toString()} highlight />
+                            <MiniCard icon={<Diameter size="sm" />} label="Service Radius" value={tutorData?.service_radius_km ? `${tutorData.service_radius_km} km` : null} />
                         </div>
                     </ProfileSection>
 
                     {/* Bio */}
                     {(tutorData?.bio as string) && (
-                        <ProfileSection icon="bx-user-square" title="About Me">
+                        <ProfileSection icon={<UserSquare size="sm" />} title="About Me">
                             <p className="text-sm text-text-secondary leading-relaxed whitespace-pre-wrap">
                                 {tutorData!.bio as string}
                             </p>
@@ -283,29 +319,29 @@ export default async function ProfilePage() {
                     )}
 
                     {/* Fees */}
-                    <ProfileSection icon="bx-rupee" title="Fees">
+                    <ProfileSection icon={<Rupee size="sm" />} title="Fees">
                         <div className="grid grid-cols-2 gap-4">
                             <FeeCard
                                 label="Per Month"
                                 amount={tutorData?.fee_per_month as number | null}
-                                icon="bx-calendar"
+                                icon={<Calendar size="sm" />}
                                 gradient="linear-gradient(135deg, #9B7FD4, #C3B1E1)"
                             />
                             <FeeCard
                                 label="Per Session"
                                 amount={tutorData?.fee_per_session as number | null}
-                                icon="bx-time"
+                                icon={<Clock size="sm" />}
                                 gradient="linear-gradient(135deg, #f093fb, #f5576c)"
                             />
                         </div>
                     </ProfileSection>
 
                     {/* Location */}
-                    <ProfileSection icon="bx-map" title="Location">
-                        <InfoRow icon="bx-home" label="Address" value={tutorData?.address as string} />
-                        <InfoRow icon="bx-buildings" label="Locality" value={tutorData?.locality as string} />
-                        <InfoRow icon="bx-city" label="City" value={tutorData?.city as string} />
-                        <InfoRow icon="bx-location-pin" label="Pincode" value={tutorData?.pincode as string} />
+                    <ProfileSection icon={<MapIcon size="sm" />} title="Location">
+                        <InfoRow icon={<Home size="sm" />} label="Address" value={tutorData?.address as string} />
+                        <InfoRow icon={<Buildings size="sm" />} label="Locality" value={tutorData?.locality as string} />
+                        <InfoRow icon={<City size="sm" />} label="City" value={tutorData?.city as string} />
+                        <InfoRow icon={<LocationPin size="sm" />} label="Pincode" value={tutorData?.pincode as string} />
 
                         {/* Service area map */}
                         <div className="mt-4">
@@ -320,7 +356,7 @@ export default async function ProfilePage() {
 
                     {/* FAQs */}
                     {tutorFaqs.length > 0 && (
-                        <ProfileSection icon="bx-help-circle" title="Frequently Asked">
+                        <ProfileSection icon={<HelpCircle size="sm" />} title="Frequently Asked">
                             <div className="space-y-3">
                                 {tutorFaqs.map((faq, i) => (
                                     <div key={i} className="rounded-[var(--radius-lg)] bg-bg-secondary p-4">
@@ -346,7 +382,7 @@ export default async function ProfilePage() {
                 <>
                     {/* Subjects as colorful chips */}
                     {(studentData?.subjects_interested as string[])?.length ? (
-                        <ProfileSection icon="bx-book-open" title="Subjects I'm Learning">
+                        <ProfileSection icon={<BookOpen size="sm" />} title="Subjects I'm Learning">
                             <div className="flex flex-wrap gap-2">
                                 {(studentData!.subjects_interested as string[]).map((subject, i) => (
                                     <span
@@ -358,7 +394,7 @@ export default async function ProfilePage() {
                                             borderColor: SUBJECT_COLORS[i % SUBJECT_COLORS.length].border,
                                         }}
                                     >
-                                        <i className="bx bx-book-bookmark text-sm" />
+                                        <BookBookmark size="sm" />
                                         {subject}
                                     </span>
                                 ))}
@@ -367,29 +403,29 @@ export default async function ProfilePage() {
                     ) : null}
 
                     {/* Student info as mini cards */}
-                    <ProfileSection icon="bx-head" title="My Details">
+                    <ProfileSection icon={<Head size="sm" />} title="My Details">
                         <div className="grid grid-cols-2 gap-3">
-                            <MiniCard icon="bx-building-house" label="School" value={studentData?.school as string} />
-                            <MiniCard icon="bx-universal-access" label="Gender" value={studentData?.gender as string} />
-                            <MiniCard icon="bx-body" label="Age" value={studentData?.age ? `${studentData.age} years` : null} />
+                            <MiniCard icon={<BuildingHouse size="sm" />} label="School" value={studentData?.school as string} />
+                            <MiniCard icon={<UniversalAccess size="sm" />} label="Gender" value={studentData?.gender as string} />
+                            <MiniCard icon={<Body size="sm" />} label="Age" value={studentData?.age ? `${studentData.age} years` : null} />
                         </div>
                     </ProfileSection>
 
                     {/* Location */}
-                    <ProfileSection icon="bx-map" title="Location">
-                        <InfoRow icon="bx-home" label="Address" value={studentData?.address as string} />
-                        <InfoRow icon="bx-buildings" label="Locality" value={studentData?.locality as string} />
-                        <InfoRow icon="bx-city" label="City" value={studentData?.city as string} />
-                        <InfoRow icon="bx-location-pin" label="Pincode" value={studentData?.pincode as string} />
+                    <ProfileSection icon={<MapIcon size="sm" />} title="Location">
+                        <InfoRow icon={<Home size="sm" />} label="Address" value={studentData?.address as string} />
+                        <InfoRow icon={<Buildings size="sm" />} label="Locality" value={studentData?.locality as string} />
+                        <InfoRow icon={<City size="sm" />} label="City" value={studentData?.city as string} />
+                        <InfoRow icon={<LocationPin size="sm" />} label="Pincode" value={studentData?.pincode as string} />
                     </ProfileSection>
 
                     {/* Parent / Guardian */}
                     {parentData && (
-                        <ProfileSection icon="bx-group" title="Parent / Guardian">
-                            <InfoRow icon="bx-user" label="Name" value={parentData.parent_name as string} />
-                            <InfoRow icon="bx-phone" label="Phone" value={parentData.parent_phone as string} />
-                            <InfoRow icon="bx-envelope" label="Email" value={parentData.parent_email as string} />
-                            <InfoRow icon="bx-heart" label="Relationship" value={
+                        <ProfileSection icon={<Group size="sm" />} title="Parent / Guardian">
+                            <InfoRow icon={<User size="sm" />} label="Name" value={parentData.parent_name as string} />
+                            <InfoRow icon={<Phone size="sm" />} label="Phone" value={parentData.parent_phone as string} />
+                            <InfoRow icon={<Envelope size="sm" />} label="Email" value={parentData.parent_email as string} />
+                            <InfoRow icon={<Heart size="sm" />} label="Relationship" value={
                                 (parentData.relationship as string)
                                     ? (parentData.relationship as string).charAt(0).toUpperCase() +
                                     (parentData.relationship as string).slice(1)
@@ -439,14 +475,14 @@ function ProfileSection({
     title,
     children,
 }: {
-    icon: string;
+    icon: ReactNode;
     title: string;
     children: React.ReactNode;
 }) {
     return (
         <div className="rounded-[var(--radius-xl)] border border-border bg-bg-white p-6 mb-5 transition-base hover:shadow-[var(--shadow-sm)]">
             <h2 className="flex items-center gap-2.5 text-base font-semibold text-text-primary mb-4 pb-3 border-b border-border">
-                <i className={`bx ${icon} text-lg text-accent`} />
+                <span className="text-accent">{icon}</span>
                 {title}
             </h2>
             {children}
@@ -460,7 +496,7 @@ function MiniCard({
     value,
     highlight,
 }: {
-    icon: string;
+    icon: ReactNode;
     label: string;
     value?: string | null;
     highlight?: boolean;
@@ -468,7 +504,7 @@ function MiniCard({
     return (
         <div className={`rounded-[var(--radius-lg)] border p-3.5 transition-base ${highlight && value ? "border-accent/20 bg-accent-light" : "border-border bg-bg-secondary"}`}>
             <div className="flex items-center gap-2 mb-1">
-                <i className={`bx ${icon} text-sm ${highlight && value ? "text-accent" : "text-text-tertiary"}`} />
+                <span className={highlight && value ? "text-accent" : "text-text-tertiary"}>{icon}</span>
                 <span className="text-[11px] text-text-tertiary uppercase tracking-wide">{label}</span>
             </div>
             <p className={`text-sm font-semibold ${value ? "text-text-primary" : "text-text-tertiary italic"}`}>
@@ -478,10 +514,10 @@ function MiniCard({
     );
 }
 
-function InfoRow({ icon, label, value }: { icon: string; label: string; value?: string | null }) {
+function InfoRow({ icon, label, value }: { icon: ReactNode; label: string; value?: string | null }) {
     return (
         <div className="flex items-center gap-3 py-2.5 border-b border-border/50 last:border-0">
-            <i className={`bx ${icon} text-base text-text-tertiary shrink-0`} />
+            <span className="text-text-tertiary shrink-0">{icon}</span>
             <span className="text-sm text-text-tertiary w-[100px] shrink-0">{label}</span>
             <span className={`text-sm flex-1 text-right ${value ? "text-text-primary font-medium" : "text-text-tertiary italic"}`}>
                 {value || "Not set"}
@@ -498,7 +534,7 @@ function FeeCard({
 }: {
     label: string;
     amount: number | null;
-    icon: string;
+    icon: ReactNode;
     gradient: string;
 }) {
     return (
@@ -506,7 +542,7 @@ function FeeCard({
             {/* Subtle gradient accent at top */}
             <div className="absolute top-0 left-0 right-0 h-1 opacity-60" style={{ background: gradient }} />
             <div className="flex items-center justify-center gap-1.5 mb-2">
-                <i className={`bx ${icon} text-sm text-text-tertiary`} />
+                <span className="text-text-tertiary">{icon}</span>
                 <p className="text-xs text-text-tertiary uppercase tracking-wide">{label}</p>
             </div>
             {amount ? (
@@ -523,7 +559,7 @@ function FeeCard({
 function EmptyField({ message }: { message: string }) {
     return (
         <p className="text-sm text-text-tertiary italic flex items-center gap-1.5">
-            <i className="bx bx-info-circle text-base" />
+            <InfoCircle size="sm" />
             {message}
         </p>
     );
@@ -550,14 +586,14 @@ function EmptyPrompt({
                 }}
             />
             <div className="p-10">
-                <i className="bx bx-rocket text-5xl text-accent mb-3 inline-block" />
+                <span className="text-accent mb-3 inline-block"><Rocket size="lg" /></span>
                 <h3 className="text-lg font-semibold text-text-primary mb-1">{title}</h3>
                 <p className="text-sm text-text-secondary mb-5 max-w-xs mx-auto">{message}</p>
                 <Link
                     href="/profile/edit"
                     className="inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-accent px-6 py-2.5 text-sm font-medium text-white transition-base hover:bg-accent-hover hover:shadow-[var(--shadow-sm)]"
                 >
-                    <i className="bx bx-edit-alt" />
+                    <EditAlt size="sm" color="white" />
                     Complete Your Profile
                 </Link>
             </div>
