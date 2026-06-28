@@ -194,13 +194,13 @@ export default async function ProfilePage() {
                                     }}
                                 >
                                     {role === "tutor"
-                                        ? <PencilSparkles size="sm" color="white" />
-                                        : <BookAlt size="sm" color="white" />
+                                        ? <PencilSparkles size="sm" color="white" aria-hidden="true" focusable="false" />
+                                        : <BookAlt size="sm" color="white" aria-hidden="true" focusable="false" />
                                     }
                                     {role}
                                 </span>
                                 <span className="inline-flex items-center gap-1 text-xs text-text-tertiary">
-                                    <Calendar size="sm" /> Joined {joinDate}
+                                    <Calendar size="sm" aria-hidden="true" focusable="false" /> Joined {joinDate}
                                 </span>
                             </div>
                         </div>
@@ -210,7 +210,7 @@ export default async function ProfilePage() {
                             href="/profile/edit"
                             className="shrink-0 inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-accent px-5 py-2.5 text-sm font-medium text-white transition-base hover:bg-accent-hover self-start sm:self-end"
                         >
-                            <EditAlt size="sm" color="white" /> Edit Profile
+                            <EditAlt size="sm" color="white" aria-hidden="true" focusable="false" /> Edit Profile
                         </Link>
                     </div>
 
@@ -218,13 +218,13 @@ export default async function ProfilePage() {
                     <div className="flex flex-wrap gap-2 mt-4">
                         {(profile.email || user.email) && (
                             <span className="inline-flex items-center gap-1.5 rounded-[var(--radius-full)] bg-bg-secondary px-3 py-1.5 text-xs text-text-secondary">
-                                <Envelope size="sm" className="text-accent" />
+                                <Envelope size="sm" className="text-accent" aria-hidden="true" focusable="false" />
                                 {profile.email || user.email}
                             </span>
                         )}
                         {(profile.phone || user.phone) && (
                             <span className="inline-flex items-center gap-1.5 rounded-[var(--radius-full)] bg-bg-secondary px-3 py-1.5 text-xs text-text-secondary">
-                                <Phone size="sm" className="text-accent" />
+                                <Phone size="sm" className="text-accent" aria-hidden="true" focusable="false" />
                                 {profile.phone || user.phone}
                             </span>
                         )}
@@ -237,7 +237,7 @@ export default async function ProfilePage() {
                 <div className="rounded-[var(--radius-xl)] border border-border bg-bg-white p-5 mb-6">
                     <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
-                            <Trophy size="sm" className="text-warning" />
+                            <Trophy size="sm" className="text-warning" aria-hidden="true" focusable="false" />
                             <span className="text-sm font-semibold text-text-primary">
                                 Profile Strength
                             </span>
@@ -275,7 +275,7 @@ export default async function ProfilePage() {
             {role === "tutor" && (
                 <>
                     {/* Subjects as colorful chips */}
-                    <ProfileSection icon={<BookOpen size="sm" />} title="Subjects & Expertise">
+                    <ProfileSection icon={<BookOpen size="sm" aria-hidden="true" focusable="false" />} title="Subjects & Expertise">
                         {(tutorData?.subjects as string[])?.length ? (
                             <div className="flex flex-wrap gap-2">
                                 {(tutorData!.subjects as string[]).map((subject, i) => (
@@ -288,7 +288,7 @@ export default async function ProfilePage() {
                                             borderColor: SUBJECT_COLORS[i % SUBJECT_COLORS.length].border,
                                         }}
                                     >
-                                        <BookBookmark size="sm" />
+                                        <BookBookmark size="sm" aria-hidden="true" focusable="false" />
                                         {subject}
                                     </span>
                                 ))}
@@ -299,19 +299,19 @@ export default async function ProfilePage() {
                     </ProfileSection>
 
                     {/* Teaching info */}
-                    <ProfileSection icon={<Head size="sm" />} title="My Details">
+                    <ProfileSection icon={<Head size="sm" aria-hidden="true" focusable="false" />} title="My Details">
                         <div className="grid grid-cols-2 gap-3">
-                            <MiniCard icon={<Education size="sm" />} label="Qualification" value={tutorData?.qualification as string} />
-                            <MiniCard icon={<UniversalAccess size="sm" />} label="Gender" value={tutorData?.gender as string} />
-                            <MiniCard icon={<Body size="sm" />} label="Age" value={tutorData?.age ? `${tutorData.age} yrs` : null} />
-                            <MiniCard icon={<Chair size="sm" />} label="Available Seats" value={tutorData?.available_seats?.toString()} highlight />
-                            <MiniCard icon={<Diameter size="sm" />} label="Service Radius" value={tutorData?.service_radius_km ? `${tutorData.service_radius_km} km` : null} />
+                            <MiniCard icon={<Education size="sm" aria-hidden="true" focusable="false" />} label="Qualification" value={tutorData?.qualification as string} />
+                            <MiniCard icon={<UniversalAccess size="sm" aria-hidden="true" focusable="false" />} label="Gender" value={tutorData?.gender as string} />
+                            <MiniCard icon={<Body size="sm" aria-hidden="true" focusable="false" />} label="Age" value={tutorData?.age ? `${tutorData.age} yrs` : null} />
+                            <MiniCard icon={<Chair size="sm" aria-hidden="true" focusable="false" />} label="Available Seats" value={tutorData?.available_seats?.toString()} highlight />
+                            <MiniCard icon={<Diameter size="sm" aria-hidden="true" focusable="false" />} label="Service Radius" value={tutorData?.service_radius_km ? `${tutorData.service_radius_km} km` : null} />
                         </div>
                     </ProfileSection>
 
                     {/* Bio */}
                     {(tutorData?.bio as string) && (
-                        <ProfileSection icon={<UserSquare size="sm" />} title="About Me">
+                        <ProfileSection icon={<UserSquare size="sm" aria-hidden="true" focusable="false" />} title="About Me">
                             <p className="text-sm text-text-secondary leading-relaxed whitespace-pre-wrap">
                                 {tutorData!.bio as string}
                             </p>
@@ -319,29 +319,29 @@ export default async function ProfilePage() {
                     )}
 
                     {/* Fees */}
-                    <ProfileSection icon={<Rupee size="sm" />} title="Fees">
+                    <ProfileSection icon={<Rupee size="sm" aria-hidden="true" focusable="false" />} title="Fees">
                         <div className="grid grid-cols-2 gap-4">
                             <FeeCard
                                 label="Per Month"
                                 amount={tutorData?.fee_per_month as number | null}
-                                icon={<Calendar size="sm" />}
+                                icon={<Calendar size="sm" aria-hidden="true" focusable="false" />}
                                 gradient="linear-gradient(135deg, #9B7FD4, #C3B1E1)"
                             />
                             <FeeCard
                                 label="Per Session"
                                 amount={tutorData?.fee_per_session as number | null}
-                                icon={<Clock size="sm" />}
+                                icon={<Clock size="sm" aria-hidden="true" focusable="false" />}
                                 gradient="linear-gradient(135deg, #f093fb, #f5576c)"
                             />
                         </div>
                     </ProfileSection>
 
                     {/* Location */}
-                    <ProfileSection icon={<MapIcon size="sm" />} title="Location">
-                        <InfoRow icon={<Home size="sm" />} label="Address" value={tutorData?.address as string} />
-                        <InfoRow icon={<Buildings size="sm" />} label="Locality" value={tutorData?.locality as string} />
-                        <InfoRow icon={<City size="sm" />} label="City" value={tutorData?.city as string} />
-                        <InfoRow icon={<LocationPin size="sm" />} label="Pincode" value={tutorData?.pincode as string} />
+                    <ProfileSection icon={<MapIcon size="sm" aria-hidden="true" focusable="false" />} title="Location">
+                        <InfoRow icon={<Home size="sm" aria-hidden="true" focusable="false" />} label="Address" value={tutorData?.address as string} />
+                        <InfoRow icon={<Buildings size="sm" aria-hidden="true" focusable="false" />} label="Locality" value={tutorData?.locality as string} />
+                        <InfoRow icon={<City size="sm" aria-hidden="true" focusable="false" />} label="City" value={tutorData?.city as string} />
+                        <InfoRow icon={<LocationPin size="sm" aria-hidden="true" focusable="false" />} label="Pincode" value={tutorData?.pincode as string} />
 
                         {/* Service area map */}
                         <div className="mt-4">
@@ -356,7 +356,7 @@ export default async function ProfilePage() {
 
                     {/* FAQs */}
                     {tutorFaqs.length > 0 && (
-                        <ProfileSection icon={<HelpCircle size="sm" />} title="Frequently Asked">
+                        <ProfileSection icon={<HelpCircle size="sm" aria-hidden="true" focusable="false" />} title="Frequently Asked">
                             <div className="space-y-3">
                                 {tutorFaqs.map((faq, i) => (
                                     <div key={i} className="rounded-[var(--radius-lg)] bg-bg-secondary p-4">
@@ -382,7 +382,7 @@ export default async function ProfilePage() {
                 <>
                     {/* Subjects as colorful chips */}
                     {(studentData?.subjects_interested as string[])?.length ? (
-                        <ProfileSection icon={<BookOpen size="sm" />} title="Subjects I'm Learning">
+                        <ProfileSection icon={<BookOpen size="sm" aria-hidden="true" focusable="false" />} title="Subjects I'm Learning">
                             <div className="flex flex-wrap gap-2">
                                 {(studentData!.subjects_interested as string[]).map((subject, i) => (
                                     <span
@@ -394,7 +394,7 @@ export default async function ProfilePage() {
                                             borderColor: SUBJECT_COLORS[i % SUBJECT_COLORS.length].border,
                                         }}
                                     >
-                                        <BookBookmark size="sm" />
+                                        <BookBookmark size="sm" aria-hidden="true" focusable="false" />
                                         {subject}
                                     </span>
                                 ))}
@@ -403,29 +403,29 @@ export default async function ProfilePage() {
                     ) : null}
 
                     {/* Student info as mini cards */}
-                    <ProfileSection icon={<Head size="sm" />} title="My Details">
+                    <ProfileSection icon={<Head size="sm" aria-hidden="true" focusable="false" />} title="My Details">
                         <div className="grid grid-cols-2 gap-3">
-                            <MiniCard icon={<BuildingHouse size="sm" />} label="School" value={studentData?.school as string} />
-                            <MiniCard icon={<UniversalAccess size="sm" />} label="Gender" value={studentData?.gender as string} />
-                            <MiniCard icon={<Body size="sm" />} label="Age" value={studentData?.age ? `${studentData.age} years` : null} />
+                            <MiniCard icon={<BuildingHouse size="sm" aria-hidden="true" focusable="false" />} label="School" value={studentData?.school as string} />
+                            <MiniCard icon={<UniversalAccess size="sm" aria-hidden="true" focusable="false" />} label="Gender" value={studentData?.gender as string} />
+                            <MiniCard icon={<Body size="sm" aria-hidden="true" focusable="false" />} label="Age" value={studentData?.age ? `${studentData.age} years` : null} />
                         </div>
                     </ProfileSection>
 
                     {/* Location */}
-                    <ProfileSection icon={<MapIcon size="sm" />} title="Location">
-                        <InfoRow icon={<Home size="sm" />} label="Address" value={studentData?.address as string} />
-                        <InfoRow icon={<Buildings size="sm" />} label="Locality" value={studentData?.locality as string} />
-                        <InfoRow icon={<City size="sm" />} label="City" value={studentData?.city as string} />
-                        <InfoRow icon={<LocationPin size="sm" />} label="Pincode" value={studentData?.pincode as string} />
+                    <ProfileSection icon={<MapIcon size="sm" aria-hidden="true" focusable="false" />} title="Location">
+                        <InfoRow icon={<Home size="sm" aria-hidden="true" focusable="false" />} label="Address" value={studentData?.address as string} />
+                        <InfoRow icon={<Buildings size="sm" aria-hidden="true" focusable="false" />} label="Locality" value={studentData?.locality as string} />
+                        <InfoRow icon={<City size="sm" aria-hidden="true" focusable="false" />} label="City" value={studentData?.city as string} />
+                        <InfoRow icon={<LocationPin size="sm" aria-hidden="true" focusable="false" />} label="Pincode" value={studentData?.pincode as string} />
                     </ProfileSection>
 
                     {/* Parent / Guardian */}
                     {parentData && (
-                        <ProfileSection icon={<Group size="sm" />} title="Parent / Guardian">
-                            <InfoRow icon={<User size="sm" />} label="Name" value={parentData.parent_name as string} />
-                            <InfoRow icon={<Phone size="sm" />} label="Phone" value={parentData.parent_phone as string} />
-                            <InfoRow icon={<Envelope size="sm" />} label="Email" value={parentData.parent_email as string} />
-                            <InfoRow icon={<Heart size="sm" />} label="Relationship" value={
+                        <ProfileSection icon={<Group size="sm" aria-hidden="true" focusable="false" />} title="Parent / Guardian">
+                            <InfoRow icon={<User size="sm" aria-hidden="true" focusable="false" />} label="Name" value={parentData.parent_name as string} />
+                            <InfoRow icon={<Phone size="sm" aria-hidden="true" focusable="false" />} label="Phone" value={parentData.parent_phone as string} />
+                            <InfoRow icon={<Envelope size="sm" aria-hidden="true" focusable="false" />} label="Email" value={parentData.parent_email as string} />
+                            <InfoRow icon={<Heart size="sm" aria-hidden="true" focusable="false" />} label="Relationship" value={
                                 (parentData.relationship as string)
                                     ? (parentData.relationship as string).charAt(0).toUpperCase() +
                                     (parentData.relationship as string).slice(1)
@@ -559,7 +559,7 @@ function FeeCard({
 function EmptyField({ message }: { message: string }) {
     return (
         <p className="text-sm text-text-tertiary italic flex items-center gap-1.5">
-            <InfoCircle size="sm" />
+            <InfoCircle size="sm" aria-hidden="true" focusable="false" />
             {message}
         </p>
     );
@@ -586,14 +586,14 @@ function EmptyPrompt({
                 }}
             />
             <div className="p-10">
-                <span className="text-accent mb-3 inline-block"><Rocket size="lg" /></span>
+                <span className="text-accent mb-3 inline-block"><Rocket size="lg" aria-hidden="true" focusable="false" /></span>
                 <h3 className="text-lg font-semibold text-text-primary mb-1">{title}</h3>
                 <p className="text-sm text-text-secondary mb-5 max-w-xs mx-auto">{message}</p>
                 <Link
                     href="/profile/edit"
                     className="inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-accent px-6 py-2.5 text-sm font-medium text-white transition-base hover:bg-accent-hover hover:shadow-[var(--shadow-sm)]"
                 >
-                    <EditAlt size="sm" color="white" />
+                    <EditAlt size="sm" color="white" aria-hidden="true" focusable="false" />
                     Complete Your Profile
                 </Link>
             </div>
