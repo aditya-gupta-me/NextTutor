@@ -42,6 +42,7 @@ export default function TutorSearchPage() {
     const [locating, setLocating] = useState(false);
     const [locationError, setLocationError] = useState("");
     const [userCity, setUserCity] = useState("");
+    const [locationCooldown, setLocationCooldown] = useState(false);
 
     useEffect(() => {
         const supabase = createClient();
@@ -125,6 +126,7 @@ export default function TutorSearchPage() {
     };
 
     const handleUseMyLocation = () => {
+        if (locationCooldown || locating) return;
         if (!navigator.geolocation) {
             setLocationError("Geolocation is not supported by your browser.");
             return;
@@ -144,6 +146,9 @@ export default function TutorSearchPage() {
                     else if (result?.locality) setUserCity(result.locality);
                 } catch { /* ignore */ }
                 setLocating(false);
+                // Cooldown: prevent rapid re-clicks for 30 seconds
+                setLocationCooldown(true);
+                setTimeout(() => setLocationCooldown(false), 30000);
             },
             (err) => {
                 setLocationError(
@@ -248,7 +253,7 @@ export default function TutorSearchPage() {
                             </button>
                             <button
                                 onClick={handleUseMyLocation}
-                                disabled={locating}
+                                disabled={locating || locationCooldown}
                                 className={`rounded-[var(--radius-full)] px-3 py-1.5 text-xs font-medium transition-base cursor-pointer disabled:cursor-wait ${userLat
                                     ? "bg-accent/10 text-accent border border-accent/20"
                                     : "bg-bg-secondary text-text-secondary border border-border hover:bg-bg-tertiary"

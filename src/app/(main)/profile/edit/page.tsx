@@ -60,6 +60,7 @@ export default function ProfileEditPage() {
     const [studentLng, setStudentLng] = useState<number | null>(null);
     const studentAddressRef = useRef<HTMLInputElement>(null);
     const [useMyLocationLoading, setUseMyLocationLoading] = useState(false);
+    const [locationCooldown, setLocationCooldown] = useState(false);
 
     // Parent info
     const [parentName, setParentName] = useState("");
@@ -148,6 +149,7 @@ export default function ProfileEditPage() {
 
     // "Use My Location" handler — reverse geocodes GPS position to fill address fields
     const handleUseMyLocation = async (forRole: "tutor" | "student") => {
+        if (locationCooldown || useMyLocationLoading) return;
         if (!navigator.geolocation) {
             toast.error("Geolocation is not supported by your browser.");
             return;
@@ -184,6 +186,9 @@ export default function ProfileEditPage() {
                     toast.error("Failed to detect location. Please type your address.");
                 }
                 setUseMyLocationLoading(false);
+                // Cooldown: prevent rapid re-clicks for 30 seconds
+                setLocationCooldown(true);
+                setTimeout(() => setLocationCooldown(false), 30000);
             },
             (err) => {
                 toast.error(
@@ -989,7 +994,7 @@ export default function ProfileEditPage() {
                                 <button
                                     type="button"
                                     onClick={() => handleUseMyLocation("tutor")}
-                                    disabled={useMyLocationLoading}
+                                    disabled={useMyLocationLoading || locationCooldown}
                                     className="w-full flex items-center justify-center gap-2 rounded-[var(--radius-lg)] border border-accent/20 bg-accent/5 px-4 py-3 text-sm font-medium text-accent transition-all hover:bg-accent/10 cursor-pointer disabled:opacity-50 disabled:cursor-wait"
                                 >
                                     <i className={`bx ${useMyLocationLoading ? 'bx-loader-alt animate-spin' : 'bx-current-location'} text-lg`} />
@@ -1167,7 +1172,7 @@ export default function ProfileEditPage() {
                                         <button
                                             type="button"
                                             onClick={() => handleUseMyLocation("student")}
-                                            disabled={useMyLocationLoading}
+                                            disabled={useMyLocationLoading || locationCooldown}
                                             className="w-full flex items-center justify-center gap-2 rounded-[var(--radius-lg)] border border-accent/20 bg-accent/5 px-4 py-3 text-sm font-medium text-accent transition-all hover:bg-accent/10 cursor-pointer disabled:opacity-50 disabled:cursor-wait"
                                         >
                                             <i className={`bx ${useMyLocationLoading ? 'bx-loader-alt animate-spin' : 'bx-current-location'} text-lg`} />
