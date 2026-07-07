@@ -28,18 +28,39 @@ export default function ServiceRadiusMap({
     minRadius = 1,
     maxRadius = 15,
 }: ServiceRadiusMapProps) {
+    const sentinelRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<google.maps.Map | null>(null);
     const circleRef = useRef<google.maps.Circle | null>(null);
     const [mapError, setMapError] = useState(false);
     const [mapLoaded, setMapLoaded] = useState(false);
+    const [isVisible, setIsVisible] = useState(editable); // editable mode loads immediately
 
     // Clamp and normalize radiusKm to ensure it's within bounds
     const normalizedRadiusKm = Math.max(minRadius, Math.min(maxRadius, radiusKm || minRadius));
 
+    // Lazy-load: only load Maps when component is near the viewport (read-only mode)
+    useEffect(() => {
+        if (editable || isVisible) return; // skip for editable mode
+        const el = sentinelRef.current;
+        if (!el) return;
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setIsVisible(true);
+                    observer.disconnect();
+                }
+            },
+            { rootMargin: "200px" }
+        );
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, [editable, isVisible]);
+
     // Initialize map
     useEffect(() => {
-        if (!mapRef.current || lat === null || lng === null) return;
+        if (!isVisible || !mapRef.current || lat === null || lng === null) return;
 
         let cancelled = false;
 
@@ -173,9 +194,18 @@ export default function ServiceRadiusMap({
     }
 
     return (
-        <div className="rounded-[var(--radius-xl)] border border-border overflow-hidden">
-            {/* Map */}
-            <div ref={mapRef} className="w-full h-[260px] md:h-[320px]" />
+        <div ref={sentinelRef} className="rounded-[var(--radius-xl)] border border-border overflow-hidden">
+            {/* Map — or placeholder until visible */}
+            {isVisible ? (
+                <div ref={mapRef} className="w-full h-[260px] md:h-[320px]" />
+            ) : (
+                <div className="w-full h-[260px] md:h-[320px] bg-bg-secondary animate-pulse flex items-center justify-center">
+                    <div className="text-center">
+                        <i className="bx bx-map text-2xl text-text-tertiary mb-1 block" />
+                        <span className="text-xs text-text-tertiary">Loading map…</span>
+                    </div>
+                </div>
+            )}
 
             {/* Footer bar */}
             <div className="bg-bg-white border-t border-border px-4 py-3">
