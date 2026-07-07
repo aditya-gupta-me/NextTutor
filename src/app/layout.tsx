@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Sans, Lora } from "next/font/google";
+import { Analytics } from '@vercel/analytics/next';
 import { ToastProvider } from "@/components/ui/ToastContext";
 import "./globals.css";
 
@@ -46,6 +47,7 @@ export default function RootLayout({
             </head>
             <body className={`${dmSans.variable} ${lora.variable} font-sans antialiased`}>
                 <ToastProvider>{children}</ToastProvider>
+                <Analytics />
             </body>
         </html>
     );
