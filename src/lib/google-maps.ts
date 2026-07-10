@@ -170,7 +170,11 @@ function setCachedReverseGeocode(lat: number, lng: number, result: ReverseGeocod
 /**
  * Reverse geocode lat/lng → structured address.
  * Used by "Use My Location" to auto-fill address fields.
- * Results are cached in sessionStorage to prevent repeat billing.
+ *
+ * Request flow:
+ *   1. Check sessionStorage cache (free, instant)
+ *   2. Call /api/reverse-geocode server proxy (rate-limited, logged)
+ *   3. Fallback: client-side Google Geocoding API if proxy is unreachable
  */
 export async function reverseGeocode(
     lat: number,
@@ -180,6 +184,42 @@ export async function reverseGeocode(
     const cached = getCachedReverseGeocode(lat, lng);
     if (cached) return cached;
 
+    // Try server-side proxy first (rate-limited + logged)
+    try {
+        const res = await fetch("/api/reverse-geocode", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ lat, lng }),
+        });
+
+        if (res.ok) {
+            const parsed: ReverseGeocodeResult = await res.json();
+            setCachedReverseGeocode(lat, lng, parsed);
+            return parsed;
+        }
+
+        // 429 = rate limited — don't fallback, respect the limit
+        if (res.status === 429) {
+            return null;
+        }
+
+        // Other errors (502, 503, etc.) — fall through to client-side fallback
+    } catch {
+        // Network error — fall through to client-side fallback
+    }
+
+    // Fallback: client-side geocoding (no rate limiting, but has sessionStorage cache)
+    return reverseGeocodeClientSide(lat, lng);
+}
+
+/**
+ * Client-side reverse geocode fallback.
+ * Only used when the server proxy is unreachable.
+ */
+async function reverseGeocodeClientSide(
+    lat: number,
+    lng: number
+): Promise<ReverseGeocodeResult | null> {
     await loadGoogleMaps();
     const geocoder = new google.maps.Geocoder();
 
@@ -223,3 +263,4 @@ export async function reverseGeocode(
         );
     });
 }
+
