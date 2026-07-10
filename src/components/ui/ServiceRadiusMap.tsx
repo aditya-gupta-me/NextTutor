@@ -130,7 +130,7 @@ export default function ServiceRadiusMap({
         return () => {
             cancelled = true;
         };
-    }, [lat, lng]); // Only re-init on coordinate changes, not radius
+    }, [isVisible, lat, lng]); // Re-init when visibility changes or coordinates change
 
     // Update circle radius when radiusKm changes (without re-creating map)
     useEffect(() => {
