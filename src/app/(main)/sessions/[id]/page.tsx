@@ -424,11 +424,11 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                 <div className="rounded-2xl border border-border bg-bg-white p-5 mt-2">
                     <h3 className="text-sm font-semibold text-text-primary mb-3">Respond to this request</h3>
                     <div className="flex gap-3">
-                        <button onClick={() => handleAction(acceptSession, "accepted")} disabled={isPending}
+                        <button type="button" onClick={() => handleAction(acceptSession, "accepted")} disabled={isPending}
                             className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 py-3.5 text-sm font-semibold text-white transition-all hover:bg-emerald-600 hover:shadow-lg hover:shadow-emerald-500/20 disabled:opacity-50 cursor-pointer active:scale-[0.98]">
                             <BoxIcon className="bx bx-check text-lg" /> Accept
                         </button>
-                        <button onClick={() => handleAction(declineSession, "declined")} disabled={isPending}
+                        <button type="button" onClick={() => handleAction(declineSession, "declined")} disabled={isPending}
                             className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border-2 border-red-200 bg-red-50 py-3.5 text-sm font-semibold text-red-600 transition-all hover:bg-red-100 disabled:opacity-50 cursor-pointer active:scale-[0.98]">
                             <BoxIcon className="bx bx-x text-lg" /> Decline
                         </button>

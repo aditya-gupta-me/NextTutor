@@ -27,7 +27,7 @@ describe('Boxicons SVG Migration', () => {
 
     it('should not have any legacy <i className="bx ..."> tags in components or pages', () => {
         let hasLegacyTags = false;
-        const legacyRegex = /<i\s+[^>]*className=[\"'{`]+(?:[^\"'}`]*?\s+)?bx(?:-[a-z0-9-]+)?[\s\"'}`]+[^>]*(?:>\s*<\/i>|\/>)/g;
+        const legacyRegex = /<i\s+[^>]*className=[\"'{`]+(?:[^\"'}`]*?\s+)?bx(?:-[a-z0-9-]+)?[\s\"'}`]+[^>]*(?:>\s*<\/i>|\/>)/;
 
         const filesWithErrors: string[] = [];
 

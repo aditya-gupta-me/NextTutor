@@ -171,7 +171,7 @@ export default async function ProfilePage() {
                                 {profile.avatar_url ? (
                                     <Image
                                         src={profile.avatar_url}
-                                        alt={profile.full_name}
+                                        alt={profile.full_name || "User avatar"}
                                         width={96}
                                         height={96}
                                         className="h-full w-full rounded-full object-cover"
