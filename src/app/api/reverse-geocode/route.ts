@@ -97,7 +97,12 @@ export async function POST(request: NextRequest) {
         lat = body?.lat;
         lng = body?.lng;
 
-        if (typeof lat !== "number" || typeof lng !== "number") {
+        if (
+            typeof lat !== "number" ||
+            typeof lng !== "number" ||
+            !Number.isFinite(lat) ||
+            !Number.isFinite(lng)
+        ) {
             return NextResponse.json({ error: "lat and lng are required numbers" }, { status: 400 });
         }
 
