@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import dynamic from "next/dynamic";
+import { BoxIcon } from "@/components/ui/BoxIcon";
 
 // Lazy-load Recharts to avoid SSR issues
 const AreaChart = dynamic(() => import("recharts").then(m => m.AreaChart), { ssr: false });
@@ -237,7 +238,7 @@ export default function AnalyticsPage() {
                             </div>
                         ) : (
                             <div className="flex flex-col items-center justify-center h-48 text-text-tertiary">
-                                <i className="bx bx-bar-chart-alt-2 text-4xl mb-2" />
+                                <BoxIcon className="bx bx-bar-chart-alt-2 text-4xl mb-2" />
                                 <p className="text-sm">No view data yet. Share your profile to start tracking!</p>
                             </div>
                         )}

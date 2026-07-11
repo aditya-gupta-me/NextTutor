@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ServiceRadiusMap from "@/components/ui/ServiceRadiusMap";
@@ -168,9 +169,11 @@ export default async function ProfilePage() {
                         }}>
                             <div className="flex h-24 w-24 items-center justify-center rounded-full bg-bg-white text-2xl font-bold text-accent border-[3px] border-bg-white">
                                 {profile.avatar_url ? (
-                                    <img
+                                    <Image
                                         src={profile.avatar_url}
                                         alt={profile.full_name}
+                                        width={96}
+                                        height={96}
                                         className="h-full w-full rounded-full object-cover"
                                     />
                                 ) : (

@@ -23,6 +23,10 @@
 .DS_Store
 *.pem
 Thumbs.db
+/scratch
+*.log
+.eslintcache
+.npm
 
 # debug
 npm-debug.log*

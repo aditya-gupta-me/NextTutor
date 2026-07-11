@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import { BoxIcon } from "@/components/ui/BoxIcon";
 
 export const metadata = {
     title: "My Reviews — NextTutor",
@@ -118,8 +119,7 @@ export default async function ReviewsPage() {
                             </div>
                             <div className="flex items-center gap-0.5 mt-2">
                                 {[1, 2, 3, 4, 5].map((s) => (
-                                    <i
-                                        key={s}
+                                    <BoxIcon key={s}
                                         className={`bx bx-star text-lg ${s <= Math.round(avgRating) ? "text-amber-400" : "text-gray-200"}`}
                                     />
                                 ))}
@@ -136,7 +136,7 @@ export default async function ReviewsPage() {
                                 return (
                                     <div key={star} className="flex items-center gap-3">
                                         <span className="text-sm text-text-tertiary w-4 text-right">{star}</span>
-                                        <i className="bx bx-star text-sm text-amber-400" />
+                                        <BoxIcon className="bx bx-star text-sm text-amber-400" />
                                         <div className="flex-1 h-2.5 rounded-full bg-bg-secondary overflow-hidden">
                                             <div
                                                 className="h-full rounded-full bg-amber-400 transition-all"
@@ -176,7 +176,7 @@ export default async function ReviewsPage() {
                                     </div>
                                     {review.helpful_count > 0 && (
                                         <span className="inline-flex items-center gap-1 rounded-full bg-accent/10 px-2.5 py-1 text-xs font-medium text-accent">
-                                            <i className="bx bx-like text-sm" />
+                                            <BoxIcon className="bx bx-like text-sm" />
                                             {review.helpful_count}
                                         </span>
                                     )}
@@ -185,8 +185,7 @@ export default async function ReviewsPage() {
                                 {/* Stars */}
                                 <div className="flex items-center gap-0.5 mb-2">
                                     {[1, 2, 3, 4, 5].map((s) => (
-                                        <i
-                                            key={s}
+                                        <BoxIcon key={s}
                                             className={`bx bx-star text-sm ${s <= review.rating ? "text-amber-400" : "text-gray-200"}`}
                                         />
                                     ))}
@@ -313,7 +312,7 @@ export default async function ReviewsPage() {
                                 </div>
                                 {review.helpful_count > 0 && (
                                     <span className="inline-flex items-center gap-1 rounded-full bg-accent/10 px-2.5 py-1 text-xs font-medium text-accent">
-                                        <i className="bx bx-like text-sm" />
+                                        <BoxIcon className="bx bx-like text-sm" />
                                         {review.helpful_count} helpful
                                     </span>
                                 )}
@@ -322,8 +321,7 @@ export default async function ReviewsPage() {
                             {/* Stars */}
                             <div className="flex items-center gap-0.5 mb-2">
                                 {[1, 2, 3, 4, 5].map((s) => (
-                                    <i
-                                        key={s}
+                                    <BoxIcon key={s}
                                         className={`bx bx-star text-sm ${s <= review.rating ? "text-amber-400" : "text-gray-200"}`}
                                     />
                                 ))}

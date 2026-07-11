@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { BoxIcon } from "@/components/ui/BoxIcon";
 
 export default async function PaymentsPage() {
     const supabase = await createClient();
@@ -53,7 +54,7 @@ export default async function PaymentsPage() {
 
             {/* Payment history */}
             <div className="rounded-[var(--radius-xl)] border border-border bg-bg-white p-10 text-center">
-                <i className="bx bx-credit-card-alt text-4xl text-text-tertiary mb-3" />
+                <BoxIcon className="bx bx-credit-card-alt text-4xl text-text-tertiary mb-3" />
                 <p className="text-lg font-medium text-text-primary">
                     No payments yet
                 </p>

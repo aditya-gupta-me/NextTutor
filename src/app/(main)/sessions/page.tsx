@@ -11,6 +11,8 @@ import {
     cancelSession,
 } from "./actions";
 import { useToast } from "@/components/ui/ToastContext";
+import { BoxIcon } from "@/components/ui/BoxIcon";
+import Image from "next/image";
 
 type SessionStatus = "requested" | "accepted" | "declined" | "active" | "completed" | "cancelled";
 
@@ -259,7 +261,7 @@ export default function SessionsPage() {
                         href="/tutors"
                         className="inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-accent px-5 py-2.5 text-sm font-medium text-white transition-base hover:bg-accent-hover hover:shadow-[var(--shadow-sm)] cursor-pointer shrink-0"
                     >
-                        <i className="bx bx-search" /> Find Tutors
+                        <BoxIcon className="bx bx-search" /> Find Tutors
                     </Link>
                 )}
             </div>
@@ -282,7 +284,7 @@ export default function SessionsPage() {
                                 : "bg-bg-secondary text-text-secondary hover:bg-bg-tertiary"
                                 }`}
                         >
-                            <i className={`bx ${tab.icon}`} />
+                            <BoxIcon className={`bx ${tab.icon}`} />
                             {tab.label}
                             {count > 0 && (
                                 <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${activeTab === tab.value
@@ -354,11 +356,10 @@ function SessionCard({
                 {/* Avatar */}
                 <div className="shrink-0">
                     {session.other_avatar ? (
-                        <img
-                            src={session.other_avatar}
+                        <Image src={session.other_avatar}
                             alt={session.other_name}
                             className="h-11 w-11 rounded-full object-cover border-2 border-border"
-                        />
+                         width={44} height={44} />
                     ) : (
                         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-accent-light text-sm font-bold text-accent border-2 border-accent/10">
                             {initials}
@@ -373,25 +374,25 @@ function SessionCard({
                             {session.other_name}
                         </h3>
                         <span className={`inline-flex items-center gap-1 rounded-[var(--radius-full)] px-2.5 py-1 text-[11px] font-medium ${config.bg} ${config.text}`}>
-                            <i className={`bx ${config.icon} text-xs`} />
+                            <BoxIcon className={`bx ${config.icon} text-xs`} />
                             {config.label}
                         </span>
                     </div>
                     <div className="flex items-center gap-3 text-xs text-text-secondary flex-wrap">
                         <span className="inline-flex items-center gap-1">
-                            <i className="bx bx-book-open text-sm" /> {session.subject}
+                            <BoxIcon className="bx bx-book-open text-sm" /> {session.subject}
                         </span>
                         <span className="inline-flex items-center gap-1">
-                            <i className="bx bx-rupee text-sm" /> ₹{session.agreed_fee.toLocaleString()}
+                            <BoxIcon className="bx bx-rupee text-sm" /> ₹{session.agreed_fee.toLocaleString()}
                             <span className="text-text-tertiary">/{session.fee_type === "monthly" ? "mo" : "session"}</span>
                         </span>
                         {dateLabel && (
                             <span className="inline-flex items-center gap-1">
-                                <i className="bx bx-calendar text-sm" /> {dateLabel}
+                                <BoxIcon className="bx bx-calendar text-sm" /> {dateLabel}
                             </span>
                         )}
                         <span className="inline-flex items-center gap-1 capitalize">
-                            <i className="bx bx-finger-touch text-sm" />
+                            <BoxIcon className="bx bx-finger-touch text-sm" />
                             {session.type === "recurring" ? "Regular" : "One-time"}
                         </span>
                     </div>
@@ -413,14 +414,14 @@ function SessionCard({
                         disabled={isPending}
                         className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] bg-emerald-500 px-4 py-2.5 text-xs font-medium text-white transition-base hover:bg-emerald-600 disabled:opacity-50 cursor-pointer"
                     >
-                        <i className="bx bx-check text-base" /> Accept
+                        <BoxIcon className="bx bx-check text-base" /> Accept
                     </button>
                     <button
                         onClick={() => onAction(declineSession, session.id, "declined")}
                         disabled={isPending}
                         className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] border border-red-200 bg-red-50 px-4 py-2.5 text-xs font-medium text-red-600 transition-base hover:bg-red-100 disabled:opacity-50 cursor-pointer"
                     >
-                        <i className="bx bx-x text-base" /> Decline
+                        <BoxIcon className="bx bx-x text-base" /> Decline
                     </button>
                 </div>
             )}
@@ -432,7 +433,7 @@ function SessionCard({
                         disabled={isPending}
                         className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] bg-accent px-4 py-2.5 text-xs font-medium text-white transition-base hover:bg-accent-hover disabled:opacity-50 cursor-pointer"
                     >
-                        <i className="bx bx-play text-base" /> Start Session
+                        <BoxIcon className="bx bx-play text-base" /> Start Session
                     </button>
                     <button
                         onClick={() => onAction(cancelSession, session.id, "cancelled")}
@@ -451,7 +452,7 @@ function SessionCard({
                         disabled={isPending}
                         className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] bg-emerald-500 px-4 py-2.5 text-xs font-medium text-white transition-base hover:bg-emerald-600 disabled:opacity-50 cursor-pointer"
                     >
-                        <i className="bx bx-check-square text-base" /> Mark Complete
+                        <BoxIcon className="bx bx-check-square text-base" /> Mark Complete
                     </button>
                 </div>
             )}
@@ -463,7 +464,7 @@ function SessionCard({
                         disabled={isPending}
                         className="inline-flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] border border-red-200 bg-red-50 px-4 py-2.5 text-xs font-medium text-red-600 transition-base hover:bg-red-100 disabled:opacity-50 cursor-pointer"
                     >
-                        <i className="bx bx-x text-base" /> Cancel Request
+                        <BoxIcon className="bx bx-x text-base" /> Cancel Request
                     </button>
                 </div>
             )}
@@ -488,7 +489,7 @@ function EmptyState({ role, activeTab }: { role: string; activeTab: string }) {
 
     return (
         <div className="rounded-[var(--radius-xl)] border border-border bg-bg-white p-16 text-center">
-            <i className="bx bx-calendar-event text-4xl text-text-tertiary mb-3" />
+            <BoxIcon className="bx bx-calendar-event text-4xl text-text-tertiary mb-3" />
             <p className="text-lg font-medium text-text-primary">{msg.title}</p>
             <p className="mt-2 text-sm text-text-secondary max-w-sm mx-auto">{msg.desc}</p>
             {role === "student" && activeTab === "all" && (
@@ -496,7 +497,7 @@ function EmptyState({ role, activeTab }: { role: string; activeTab: string }) {
                     href="/tutors"
                     className="inline-flex items-center gap-2 mt-6 rounded-[var(--radius-md)] bg-accent px-6 py-3 text-sm font-medium text-white transition-base hover:bg-accent-hover cursor-pointer"
                 >
-                    <i className="bx bx-search" /> Find a Tutor
+                    <BoxIcon className="bx bx-search" /> Find a Tutor
                 </Link>
             )}
         </div>

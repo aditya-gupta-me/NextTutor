@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import InlineAlert from "@/components/ui/InlineAlert";
 import { useToast } from "@/components/ui/ToastContext";
+import { BoxIcon } from "@/components/ui/BoxIcon";
+import Image from "next/image";
 
 interface TutorInfo {
     id: string;
@@ -212,7 +214,7 @@ export default function NewSessionPage() {
                         onClick={() => router.back()}
                         className="inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary transition-base mb-4 cursor-pointer"
                     >
-                        <i className="bx bx-arrow-back" /> Go Back
+                        <BoxIcon className="bx bx-arrow-back" /> Go Back
                     </button>
                     <h1 className="font-serif text-2xl font-bold text-text-primary md:text-3xl">
                         📚 Let&apos;s Learn Together!
@@ -230,11 +232,10 @@ export default function NewSessionPage() {
                     >
                         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-bg-white text-lg font-bold text-accent border-2 border-bg-white">
                             {tutor.user.avatar_url ? (
-                                <img
-                                    src={tutor.user.avatar_url}
+                                <Image src={tutor.user.avatar_url}
                                     alt={tutor.user.full_name}
                                     className="h-full w-full rounded-full object-cover"
-                                />
+                                 width={40} height={40} />
                             ) : (
                                 <span>{initials}</span>
                             )}
@@ -289,14 +290,14 @@ export default function NewSessionPage() {
                                         }
                                 }
                             >
-                                {selectedSubject === subject && <i className="bx bx-check mr-1" />}
+                                {selectedSubject === subject && <BoxIcon className="bx bx-check mr-1" />}
                                 {subject}
                             </button>
                         ))}
                     </div>
                     {!selectedSubject && (
                         <p className="text-xs text-text-tertiary mt-2 flex items-center gap-1">
-                            <i className="bx bx-info-circle" /> Pick one subject to continue
+                            <BoxIcon className="bx bx-info-circle" /> Pick one subject to continue
                         </p>
                     )}
                 </Section>
@@ -334,7 +335,7 @@ export default function NewSessionPage() {
                                     : "text-text-secondary hover:text-text-primary"
                                     }`}
                             >
-                                <i className="bx bx-calendar mr-1" /> Monthly
+                                <BoxIcon className="bx bx-calendar mr-1" /> Monthly
                             </button>
                             <button
                                 type="button"
@@ -344,7 +345,7 @@ export default function NewSessionPage() {
                                     : "text-text-secondary hover:text-text-primary"
                                     }`}
                             >
-                                <i className="bx bx-time mr-1" /> Per Session
+                                <BoxIcon className="bx bx-time mr-1" /> Per Session
                             </button>
                         </div>
 
@@ -354,7 +355,7 @@ export default function NewSessionPage() {
                                 Agreed Fee (₹)
                             </label>
                             <div className="relative">
-                                <i className="bx bx-rupee absolute left-3 top-1/2 -translate-y-1/2 text-lg text-text-tertiary pointer-events-none" />
+                                <BoxIcon className="bx bx-rupee absolute left-3 top-1/2 -translate-y-1/2 text-lg text-text-tertiary pointer-events-none" />
                                 <input
                                     type="number"
                                     value={agreedFee}
@@ -427,11 +428,11 @@ export default function NewSessionPage() {
                 >
                     {submitting ? (
                         <span className="flex items-center justify-center gap-2">
-                            <i className="bx bx-loader-alt animate-spin" /> Sending Request...
+                            <BoxIcon className="bx bx-loader-alt animate-spin" /> Sending Request...
                         </span>
                     ) : (
                         <span className="flex items-center justify-center gap-2">
-                            <i className="bx bx-send" /> Send Request to {tutor.user.full_name.split(" ")[0]}
+                            <BoxIcon className="bx bx-send" /> Send Request to {tutor.user.full_name.split(" ")[0]}
                         </span>
                     )}
                 </button>
@@ -460,7 +461,7 @@ function Section({
     return (
         <div className="rounded-[var(--radius-xl)] border border-border bg-bg-white p-5 mb-5 transition-base hover:shadow-[var(--shadow-sm)]">
             <h3 className="flex items-center gap-2 text-sm font-semibold text-text-primary mb-4 pb-2.5 border-b border-border">
-                <i className={`bx ${icon} text-lg text-accent`} />
+                <BoxIcon className={`bx ${icon} text-lg text-accent`} />
                 {title}
             </h3>
             {children}
@@ -490,7 +491,7 @@ function TypeCard({
                 : "border-border bg-bg-white hover:border-border-hover hover:bg-bg-secondary"
                 }`}
         >
-            <i className={`bx ${icon} text-2xl ${selected ? "text-accent" : "text-text-tertiary"} mb-2 block`} />
+            <BoxIcon className={`bx ${icon} text-2xl ${selected ? "text-accent" : "text-text-tertiary"} mb-2 block`} />
             <p className={`text-sm font-semibold ${selected ? "text-accent" : "text-text-primary"}`}>
                 {title}
             </p>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { BoxIcon } from "@/components/ui/BoxIcon";
 
 /**
  * Simplified activity graph for student-facing tutor profiles.
@@ -52,7 +53,7 @@ export default function TutorActivityGraph({
         <div className="rounded-[var(--radius-xl)] border border-border bg-bg-white p-4 md:p-5 mb-6">
             <div className="flex items-center justify-between mb-3">
                 <h2 className="text-sm font-semibold text-text-primary flex items-center gap-2">
-                    <i className="bx bx-trending-up text-accent" />
+                    <BoxIcon className="bx bx-trending-up text-accent" />
                     Profile Activity
                 </h2>
                 <span className="text-[11px] text-text-tertiary">Last 30 days</span>

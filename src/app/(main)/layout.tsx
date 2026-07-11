@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import MobileHeader from "@/components/ui/MobileHeader";
@@ -110,7 +111,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
                     <div className="flex items-center gap-3">
                         <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent-light text-xs font-semibold text-accent overflow-hidden shrink-0">
                             {avatarUrl ? (
-                                <img src={avatarUrl} alt={name} className="h-full w-full object-cover" />
+                                <Image src={avatarUrl} alt={name} width={36} height={36} className="h-full w-full object-cover" />
                             ) : (
                                 initials
                             )}

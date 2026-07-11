@@ -3,6 +3,8 @@
 import { useState, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/components/ui/ToastContext";
+import Image from "next/image";
+import { BoxIcon } from "@/components/ui/BoxIcon";
 
 // Keeps file uploads predictable — no surprises in prod
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
@@ -193,9 +195,12 @@ export default function AvatarUpload({
                 >
                     {/* Current photo or initials */}
                     {displayUrl ? (
-                        <img
+                        <Image
                             src={displayUrl}
-                            alt={fullName}
+                            alt={`${fullName} profile photo`}
+                            width={96}
+                            height={96}
+                            unoptimized={displayUrl.startsWith('blob:')}
                             className="h-full w-full rounded-full object-cover"
                         />
                     ) : (
@@ -205,7 +210,7 @@ export default function AvatarUpload({
                     {/* Hover overlay — hidden during upload/moderation */}
                     {!isBusy && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                            <i className="bx bx-camera text-white text-xl" />
+                            <BoxIcon className="bx bx-camera text-white text-xl" />
                             <span className="text-[10px] text-white/90 font-medium mt-0.5">
                                 Change
                             </span>
@@ -215,7 +220,7 @@ export default function AvatarUpload({
                     {/* Upload spinner */}
                     {uploading && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center rounded-full bg-black/40">
-                            <i className="bx bx-loader-alt text-white text-2xl animate-spin" />
+                            <BoxIcon className="bx bx-loader-alt text-white text-2xl animate-spin" />
                             <span className="text-[9px] text-white/80 font-medium mt-1">Uploading…</span>
                         </div>
                     )}
@@ -223,7 +228,7 @@ export default function AvatarUpload({
                     {/* Moderation spinner */}
                     {moderating && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center rounded-full bg-black/40">
-                            <i className="bx bx-shield-quarter text-white text-2xl animate-pulse" />
+                            <BoxIcon className="bx bx-shield-quarter text-white text-2xl animate-pulse" />
                             <span className="text-[9px] text-white/80 font-medium mt-1">Verifying…</span>
                         </div>
                     )}
@@ -239,7 +244,7 @@ export default function AvatarUpload({
                     title="Remove photo"
                     data-testid="avatar-remove-btn"
                 >
-                    <i className="bx bx-trash text-sm" />
+                    <BoxIcon className="bx bx-trash text-sm" />
                 </button>
             )}
         </div>

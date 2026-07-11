@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { User, Cog, LoaderLinesAlt, Power } from "@boxicons/react";
@@ -69,7 +70,7 @@ export default function MobileHeader({ avatarUrl, name, initials, role }: Mobile
                     className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-light text-xs font-semibold text-accent overflow-hidden shrink-0 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 transition-base hover:opacity-90 cursor-pointer"
                 >
                     {avatarUrl ? (
-                        <img src={avatarUrl} alt={name} className="h-full w-full object-cover" />
+                        <Image src={avatarUrl} alt={`${name} avatar`} width={32} height={32} className="h-full w-full object-cover" />
                     ) : (
                         initials
                     )}

@@ -19,6 +19,10 @@ const lora = Lora({
 });
 
 export const metadata: Metadata = {
+    metadataBase: new URL(
+        process.env.NEXT_PUBLIC_SITE_URL || 
+        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
+    ),
     title: "NextTutor — Find Trusted Tutors Near You",
     description:
         "Discover verified private tutors in your neighbourhood. Browse profiles, read reviews, book sessions, and manage payments — all in one place.",
@@ -40,10 +44,6 @@ export default function RootLayout({
     return (
         <html lang="en">
             <head>
-                <link
-                    href="https://cdn.boxicons.com/3.0.8/fonts/basic/boxicons.min.css"
-                    rel="stylesheet"
-                />
             </head>
             <body className={`${dmSans.variable} ${lora.variable} font-sans antialiased`}>
                 <ToastProvider>{children}</ToastProvider>
