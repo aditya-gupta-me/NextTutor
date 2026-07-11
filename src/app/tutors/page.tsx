@@ -6,6 +6,8 @@ import { createClient } from "@/lib/supabase/client";
 import Navbar from "@/components/ui/Navbar";
 import Footer from "@/components/ui/Footer";
 import { SUBJECTS, DISTANCE_OPTIONS } from "@/lib/constants";
+import { BoxIcon } from "@/components/ui/BoxIcon";
+import Image from "next/image";
 
 interface TutorResult {
     id: string;
@@ -254,18 +256,18 @@ export default function TutorSearchPage() {
                             <button
                                 onClick={handleUseMyLocation}
                                 disabled={locating || locationCooldown}
-                                className={`rounded-[var(--radius-full)] px-3 py-1.5 text-xs font-medium transition-base cursor-pointer disabled:cursor-wait ${userLat
+                                className={`inline-flex items-center gap-1 rounded-[var(--radius-full)] px-3 py-1.5 text-xs font-medium transition-base cursor-pointer disabled:cursor-wait ${userLat
                                     ? "bg-accent/10 text-accent border border-accent/20"
                                     : "bg-bg-secondary text-text-secondary border border-border hover:bg-bg-tertiary"
                                     }`}
                             >
-                                <i className={`bx ${locating ? "bx-loader-alt animate-spin" : "bx-current-location"} mr-1`} />
-                                {locating ? "Locating..." : userLat ? "📍 Near me" : "Use my location"}
+                                <BoxIcon className={`bx ${locating ? "bx-loader-alt animate-spin" : userLat ? "bx-check-circle" : "bx-current-location"} text-xs`} />
+                                {locating ? "Locating..." : userLat ? "Near me" : "Use my location"}
                             </button>
                         </div>
                         {locationError && (
                             <p className="text-xs text-red-500 mt-2 flex items-center gap-1">
-                                <i className="bx bx-error-circle" /> {locationError}
+                                <BoxIcon className="bx bx-error-circle" /> {locationError}
                             </p>
                         )}
                     </div>
@@ -309,7 +311,7 @@ export default function TutorSearchPage() {
                             </div>
                             {isGuest && filteredTutors.length > GUEST_LIMIT && (
                                 <div className="mt-8 rounded-[var(--radius-xl)] border border-accent/20 p-8 text-center" style={{ background: "linear-gradient(135deg, #f0f4ff 0%, #f5f0ff 100%)" }}>
-                                    <i className="bx bx-lock-open-alt text-3xl text-accent mb-3" />
+                                    <BoxIcon className="bx bx-lock-open-alt text-3xl text-accent mb-3" />
                                     <h3 className="text-lg font-semibold text-text-primary mb-1">
                                         You&apos;re only seeing a preview
                                     </h3>
@@ -321,7 +323,7 @@ export default function TutorSearchPage() {
                                         className="inline-flex items-center gap-2 rounded-[var(--radius-lg)] py-3 px-8 text-sm font-semibold text-white transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
                                         style={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}
                                     >
-                                        <i className="bx bx-user-plus" /> Create Free Account →
+                                        <BoxIcon className="bx bx-user-plus" /> Create Free Account →
                                     </Link>
                                 </div>
                             )}
@@ -352,11 +354,10 @@ function TutorCard({ tutor }: { tutor: TutorResult }) {
             <div className="flex items-start gap-3 mb-3">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent-light text-sm font-bold text-accent">
                     {user.avatar_url ? (
-                        <img
-                            src={user.avatar_url}
+                        <Image src={user.avatar_url}
                             alt={user.full_name}
                             className="h-12 w-12 rounded-full object-cover"
-                        />
+                            width={48} height={48} />
                     ) : (
                         initials
                     )}
@@ -383,12 +384,13 @@ function TutorCard({ tutor }: { tutor: TutorResult }) {
                         ⭐ {tutor.avg_rating.toFixed(1)} ({tutor.review_count})
                     </span>
                 )}
-                <span className="text-xs text-text-tertiary">
-                    📍 {tutor.locality}, {tutor.city}
+                <span className="flex items-center gap-1 text-xs text-text-tertiary">
+                    <BoxIcon className="bx bx-map text-sm" />
+                    {tutor.locality}, {tutor.city}
                 </span>
                 {tutor.distance_km !== undefined && (
                     <span className="inline-flex items-center gap-0.5 rounded-[var(--radius-sm)] bg-accent/10 px-2 py-0.5 text-[10px] font-medium text-accent">
-                        <i className="bx bx-walk text-xs" />
+                        <BoxIcon className="bx bx-walk text-xs" />
                         {tutor.distance_km} km
                     </span>
                 )}

@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { toggleHelpful } from "@/app/(main)/sessions/actions";
+import { BoxIcon } from "@/components/ui/BoxIcon";
 
 interface ReviewItem {
     id: string;
@@ -48,8 +49,7 @@ export default function ReviewsList({
                         </div>
                         <div className="flex items-center gap-0.5 mt-1.5">
                             {[1, 2, 3, 4, 5].map((s) => (
-                                <i
-                                    key={s}
+                                <BoxIcon key={s}
                                     className={`bx bx-star text-sm ${s <= Math.round(avgRating) ? "text-amber-400" : "text-gray-200"}`}
                                 />
                             ))}
@@ -67,7 +67,7 @@ export default function ReviewsList({
                             return (
                                 <div key={star} className="flex items-center gap-2">
                                     <span className="text-xs text-text-tertiary w-3 text-right">{star}</span>
-                                    <i className="bx bx-star text-xs text-amber-400" />
+                                    <BoxIcon className="bx bx-star text-xs text-amber-400" />
                                     <div className="flex-1 h-2 rounded-full bg-bg-secondary overflow-hidden">
                                         <div
                                             className="h-full rounded-full bg-amber-400 transition-all"
@@ -110,7 +110,7 @@ export default function ReviewsList({
                         className="inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:underline transition-all"
                     >
                         See all {reviewCount} reviews
-                        <i className="bx bx-right-arrow-alt text-lg" />
+                        <BoxIcon className="bx bx-right-arrow-alt text-lg" />
                     </Link>
                 </div>
             )}
@@ -166,8 +166,7 @@ function ReviewCard({
             {/* Stars */}
             <div className="flex items-center gap-0.5 mb-2">
                 {[1, 2, 3, 4, 5].map((s) => (
-                    <i
-                        key={s}
+                    <BoxIcon key={s}
                         className={`bx bx-star text-sm ${s <= review.rating ? "text-amber-400" : "text-gray-200"}`}
                     />
                 ))}
@@ -189,7 +188,7 @@ function ReviewCard({
                     : "bg-bg-secondary text-text-tertiary border border-transparent hover:bg-bg-secondary hover:text-text-secondary"
                     }`}
             >
-                <i className={`bx ${liked ? "bx-like" : "bx-like"} text-sm`} />
+                <BoxIcon className={`bx ${liked ? "bxs-like" : "bx-like"} text-sm`} />
                 {helpfulCount > 0 ? `Helpful (${helpfulCount})` : "Helpful"}
             </button>
         </div>

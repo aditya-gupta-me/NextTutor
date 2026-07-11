@@ -3,6 +3,7 @@
 import { useState, useEffect, useTransition, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import {
     acceptSession,
@@ -13,6 +14,7 @@ import {
     submitReview,
 } from "../actions";
 import { useToast } from "@/components/ui/ToastContext";
+import { BoxIcon } from "@/components/ui/BoxIcon";
 
 
 interface SessionDetail {
@@ -216,7 +218,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                 <p className="text-xl font-semibold text-text-primary mb-2">Session not found</p>
                 <p className="text-sm text-text-secondary mb-6">This session may have been removed or you don&apos;t have access.</p>
                 <Link href="/sessions" className="inline-flex items-center gap-2 rounded-[var(--radius-lg)] bg-accent px-6 py-3 text-sm font-medium text-white hover:bg-accent-hover transition-base">
-                    <i className="bx bx-arrow-back" /> Back to Sessions
+                    <BoxIcon className="bx bx-arrow-back" /> Back to Sessions
                 </Link>
             </div>
         );
@@ -259,7 +261,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
             <div className="rounded-2xl border border-border bg-bg-white p-5 mb-4">
                 <div className="flex items-center gap-4">
                     {session.other_avatar ? (
-                        <img src={session.other_avatar} alt={session.other_name} className="h-14 w-14 rounded-full object-cover border-2 border-border" />
+                        <Image src={session.other_avatar} alt={session.other_name} width={56} height={56} className="h-14 w-14 rounded-full object-cover border-2 border-border" />
                     ) : (
                         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-accent-light text-lg font-bold text-accent border-2 border-accent/10">{initials}</div>
                     )}
@@ -269,7 +271,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                     </div>
                     {session.tutor_slug && (
                         <Link href={`/tutors/${session.tutor_slug}`} className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] border border-border px-3 py-2 text-xs font-medium text-text-secondary hover:bg-bg-secondary transition-base">
-                            View Profile <i className="bx bx-link-external" />
+                            View Profile <BoxIcon className="bx bx-link-external" />
                         </Link>
                     )}
                 </div>
@@ -278,7 +280,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
             {/* Details Grid */}
             <div className="rounded-2xl border border-border bg-bg-white p-5 mb-4">
                 <h3 className="flex items-center gap-2 text-sm font-semibold text-text-primary mb-4 pb-3 border-b border-border">
-                    <i className="bx bx-info-circle text-lg text-accent" /> Session Details
+                    <BoxIcon className="bx bx-info-circle text-lg text-accent" /> Session Details
                 </h3>
                 <div className="grid grid-cols-2 gap-y-5 gap-x-4">
                     <DetailItem icon="bx-book-open" label="Subject" value={session.subject} />
@@ -293,7 +295,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
             {session.message && (
                 <div className="rounded-2xl border border-border bg-bg-white p-5 mb-4">
                     <h3 className="flex items-center gap-2 text-sm font-semibold text-text-primary mb-3">
-                        <i className="bx bx-note text-lg text-accent" /> Student&apos;s Note
+                        <BoxIcon className="bx bx-note text-lg text-accent" /> Student&apos;s Note
                     </h3>
                     <div className="bg-bg-secondary rounded-xl p-4 border border-border/50">
                         <p className="text-sm text-text-secondary leading-relaxed italic">&ldquo;{session.message}&rdquo;</p>
@@ -310,7 +312,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-400" />
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="flex items-center gap-2 text-sm font-semibold text-text-primary">
-                                <i className="bx bx-star text-lg text-amber-500" />
+                                <BoxIcon className="bx bx-star text-lg text-amber-500" />
                                 {role === "student" ? "Your Review" : "Student\'s Review"}
                             </h3>
                             <span className="text-xs text-text-tertiary">
@@ -321,7 +323,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                         {/* Stars */}
                         <div className="flex items-center gap-1 mb-3">
                             {[1, 2, 3, 4, 5].map((star) => (
-                                <i key={star} className={`bx bx-star text-xl ${star <= existingReview.rating ? "text-amber-400" : "text-gray-200"}`} />
+                                <BoxIcon key={star} className={`bx bx-star text-xl ${star <= existingReview.rating ? "text-amber-400" : "text-gray-200"}`} />
                             ))}
                             <span className="ml-2 text-sm font-medium text-text-primary">{STAR_LABELS[existingReview.rating]}</span>
                         </div>
@@ -336,7 +338,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                         {/* Helpful count */}
                         {existingReview.helpful_count > 0 && (
                             <div className="mt-3 flex items-center gap-1.5 text-xs text-text-tertiary">
-                                <i className="bx bx-like text-sm" />
+                                <BoxIcon className="bx bx-like text-sm" />
                                 {existingReview.helpful_count} {existingReview.helpful_count === 1 ? "person" : "people"} found this helpful
                             </div>
                         )}
@@ -362,7 +364,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                                         onClick={() => setReviewRating(star)}
                                         className="p-0.5 transition-transform hover:scale-125 cursor-pointer"
                                     >
-                                        <i className={`bx bx-star text-3xl transition-colors ${star <= activeRating ? "text-amber-400 drop-shadow-[0_0_3px_rgba(251,191,36,0.4)]" : "text-gray-200"}`} />
+                                        <BoxIcon className={`bx bx-star text-3xl transition-colors ${star <= activeRating ? "text-amber-400 drop-shadow-[0_0_3px_rgba(251,191,36,0.4)]" : "text-gray-200"}`} />
                                     </button>
                                 ))}
                             </div>
@@ -386,7 +388,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                             />
                             <div className="flex items-center justify-between mt-1.5">
                                 <p className="text-[10px] text-text-tertiary flex items-center gap-1">
-                                    <i className="bx bx-shield-quarter" /> Reviews are checked for respectful language
+                                    <BoxIcon className="bx bx-shield-quarter" /> Reviews are checked for respectful language
                                 </p>
                                 <span className="text-[10px] text-text-tertiary">{reviewComment.length}/1000</span>
                             </div>
@@ -395,7 +397,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                         {/* Error */}
                         {reviewError && (
                             <div className="flex items-start gap-2 rounded-xl bg-red-50 border border-red-200 p-3 mb-4">
-                                <i className="bx bx-error-circle text-red-500 text-lg mt-0.5" />
+                                <BoxIcon className="bx bx-error-circle text-red-500 text-lg mt-0.5" />
                                 <p className="text-xs text-red-600 leading-relaxed">{reviewError}</p>
                             </div>
                         )}
@@ -408,9 +410,9 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                             style={{ background: reviewRating > 0 ? "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)" : "#d1d5db" }}
                         >
                             {reviewSubmitting ? (
-                                <><i className="bx bx-loader-alt animate-spin" /> Submitting...</>
+                                <><BoxIcon className="bx bx-loader-alt animate-spin" /> Submitting...</>
                             ) : (
-                                <><i className="bx bx-send" /> Submit Review</>
+                                <><BoxIcon className="bx bx-send" /> Submit Review</>
                             )}
                         </button>
                     </div>
@@ -422,13 +424,13 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                 <div className="rounded-2xl border border-border bg-bg-white p-5 mt-2">
                     <h3 className="text-sm font-semibold text-text-primary mb-3">Respond to this request</h3>
                     <div className="flex gap-3">
-                        <button onClick={() => handleAction(acceptSession, "accepted")} disabled={isPending}
+                        <button type="button" onClick={() => handleAction(acceptSession, "accepted")} disabled={isPending}
                             className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 py-3.5 text-sm font-semibold text-white transition-all hover:bg-emerald-600 hover:shadow-lg hover:shadow-emerald-500/20 disabled:opacity-50 cursor-pointer active:scale-[0.98]">
-                            <i className="bx bx-check text-lg" /> Accept
+                            <BoxIcon className="bx bx-check text-lg" /> Accept
                         </button>
-                        <button onClick={() => handleAction(declineSession, "declined")} disabled={isPending}
+                        <button type="button" onClick={() => handleAction(declineSession, "declined")} disabled={isPending}
                             className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border-2 border-red-200 bg-red-50 py-3.5 text-sm font-semibold text-red-600 transition-all hover:bg-red-100 disabled:opacity-50 cursor-pointer active:scale-[0.98]">
-                            <i className="bx bx-x text-lg" /> Decline
+                            <BoxIcon className="bx bx-x text-lg" /> Decline
                         </button>
                     </div>
                 </div>
@@ -440,7 +442,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                     <div className="flex gap-3">
                         <button onClick={() => handleAction(startSession, "started")} disabled={isPending}
                             className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-accent py-3.5 text-sm font-semibold text-white transition-all hover:bg-accent-hover hover:shadow-lg disabled:opacity-50 cursor-pointer active:scale-[0.98]">
-                            <i className="bx bx-play text-lg" /> Start Session
+                            <BoxIcon className="bx bx-play text-lg" /> Start Session
                         </button>
                         <button onClick={() => handleAction(cancelSession, "cancelled")} disabled={isPending}
                             className="inline-flex items-center justify-center gap-2 rounded-xl border border-border px-5 py-3.5 text-sm font-medium text-text-secondary transition-base hover:bg-bg-secondary disabled:opacity-50 cursor-pointer active:scale-[0.98]">
@@ -454,7 +456,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                 <div className="rounded-2xl border border-border bg-bg-white p-5 mt-2">
                     <button onClick={() => handleAction(completeSession, "completed")} disabled={isPending}
                         className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 py-3.5 text-sm font-semibold text-white transition-all hover:bg-emerald-600 hover:shadow-lg hover:shadow-emerald-500/20 disabled:opacity-50 cursor-pointer active:scale-[0.98]">
-                        <i className="bx bx-check-square text-lg" /> Mark as Complete
+                        <BoxIcon className="bx bx-check-square text-lg" /> Mark as Complete
                     </button>
                 </div>
             )}
@@ -463,7 +465,7 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
                 <div className="rounded-2xl border border-border bg-bg-white p-5 mt-2">
                     <button onClick={() => handleAction(cancelSession, "cancelled")} disabled={isPending}
                         className="w-full inline-flex items-center justify-center gap-2 rounded-xl border-2 border-red-200 bg-red-50 py-3.5 text-sm font-semibold text-red-600 transition-all hover:bg-red-100 disabled:opacity-50 cursor-pointer active:scale-[0.98]">
-                        <i className="bx bx-x text-lg" /> Cancel Request
+                        <BoxIcon className="bx bx-x text-lg" /> Cancel Request
                     </button>
                 </div>
             )}
@@ -476,7 +478,7 @@ function DetailItem({ icon, label, value }: { icon: string; label: string; value
     return (
         <div className="flex items-start gap-2.5">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-bg-secondary mt-0.5">
-                <i className={`bx ${icon} text-base text-accent`} />
+                <BoxIcon className={`bx ${icon} text-base text-accent`} />
             </div>
             <div>
                 <p className="text-[11px] text-text-tertiary uppercase tracking-wider font-medium">{label}</p>

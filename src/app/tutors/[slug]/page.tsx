@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
 import Navbar from "@/components/ui/Navbar";
 import Footer from "@/components/ui/Footer";
@@ -8,6 +9,7 @@ import ReviewsList from "@/components/ui/ReviewsList";
 import TutorMap from "@/components/ui/TutorMap";
 import ViewTracker from "@/components/ui/ViewTracker";
 import TutorActivityGraph from "@/components/ui/TutorActivityGraph";
+import { BoxIcon } from "@/components/ui/BoxIcon";
 
 interface PageProps {
     params: Promise<{ slug: string }>;
@@ -18,16 +20,47 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const supabase = await createClient();
     const { data: tutor } = await supabase
         .from("tutor_profiles")
-        .select("subjects, city, user_id, users!inner(full_name), show_analytics")
+        .select("subjects, city, user_id, users!inner(full_name), show_analytics, bio")
         .eq("slug", slug)
         .single();
 
     if (!tutor) return { title: "Tutor Not Found — NextTutor" };
 
     const user = (tutor as unknown as { users: { full_name: string } }).users;
+    const subjectsList = tutor.subjects as string[] || [];
+    const subjectsStr = subjectsList.join(", ");
+    
+    const subjectDisplay = subjectsStr.length > 30
+        ? subjectsStr.slice(0, 27) + "…"
+        : subjectsStr;
+
+    const title = `${user.full_name} — ${subjectDisplay} Tutor in ${tutor.city} | NextTutor`;
+    const description = tutor.bio?.slice(0, 155) ?? `Book sessions with ${user.full_name}, a verified ${subjectsStr} tutor in ${tutor.city}. View ratings, FAQs, and pricing on NextTutor.`;
+
     return {
-        title: `${user.full_name} — ${(tutor.subjects as string[]).join(", ")} Tutor in ${tutor.city} | NextTutor`,
-        description: `Book sessions with ${user.full_name}, a verified ${(tutor.subjects as string[]).join(", ")} tutor in ${tutor.city}. View ratings, FAQs, and pricing on NextTutor.`,
+        title,
+        description,
+        openGraph: {
+            title,
+            description,
+            url: `https://nexttutor.in/tutors/${slug}`,
+            siteName: 'NextTutor',
+            images: [
+                {
+                    url: `/api/og/tutor/${slug}`,
+                    width: 1200,
+                    height: 630,
+                    alt: `${user.full_name} — ${subjectsStr} Tutor`,
+                },
+            ],
+            type: 'profile',
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title,
+            description,
+            images: [`/api/og/tutor/${slug}`],
+        },
     };
 }
 
@@ -146,8 +179,49 @@ export default async function TutorProfilePage({ params }: PageProps) {
         })
     );
 
+    const jsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'Person',
+        name: user.full_name,
+        url: `https://nexttutor.in/tutors/${slug}`,
+        image: user.avatar_url,
+        jobTitle: `${subjects.join(" · ")} Tutor`,
+        address: {
+            '@type': 'PostalAddress',
+            addressLocality: tutor.city,
+            addressCountry: 'IN',
+        },
+        hasOfferCatalog: {
+            '@type': 'OfferCatalog',
+            name: 'Tutoring Services',
+            itemListElement: subjects.map((subject) => {
+                const offer: any = {
+                    '@type': 'Offer',
+                    itemOffered: {
+                        '@type': 'Service',
+                        name: `${subject} Tutoring`,
+                    },
+                };
+                if (tutor.avg_rating > 0) {
+                    offer.itemOffered.aggregateRating = {
+                        '@type': 'AggregateRating',
+                        ratingValue: tutor.avg_rating.toFixed(1),
+                        reviewCount: tutor.review_count,
+                        bestRating: '5',
+                        worstRating: '1',
+                    };
+                }
+                return offer;
+            }),
+        },
+    };
+
     return (
         <>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+            />
             <ViewTracker tutorProfileId={tutor.id} />
             <Navbar isLoggedIn={!!currentUser} />
             <main className="min-h-screen bg-bg-primary pt-20">
@@ -172,7 +246,14 @@ export default async function TutorProfilePage({ params }: PageProps) {
                                     >
                                         <div className="flex h-24 w-24 items-center justify-center rounded-full bg-bg-white text-2xl font-bold text-accent border-3 border-bg-white">
                                             {user.avatar_url ? (
-                                                <img src={user.avatar_url} alt={user.full_name} className="h-full w-full rounded-full object-cover" />
+                                                <Image 
+                                                    src={user.avatar_url} 
+                                                    alt={`${user.full_name}, ${subjects.join(" · ")} tutor in ${tutor.city}`} 
+                                                    width={96} 
+                                                    height={96} 
+                                                    priority
+                                                    className="h-full w-full rounded-full object-cover" 
+                                                />
                                             ) : (
                                                 <span>{initials}</span>
                                             )}
@@ -310,7 +391,7 @@ export default async function TutorProfilePage({ params }: PageProps) {
                                             className="w-full inline-flex items-center justify-center gap-2 rounded-[var(--radius-lg)] py-3.5 text-center text-sm font-semibold text-white transition-all hover:shadow-[0_4px_12px_rgba(102,126,234,0.3)] hover:scale-[1.02] active:scale-[0.98]"
                                             style={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}
                                         >
-                                            <i className="bx bx-book-reader text-lg" />
+                                            <BoxIcon className="bx bx-book-reader text-lg" />
                                             Start Learning
                                         </Link>
                                     ) : currentUserId === tutor.user_id ? (
@@ -326,7 +407,7 @@ export default async function TutorProfilePage({ params }: PageProps) {
                                             className="w-full inline-flex items-center justify-center gap-2 rounded-[var(--radius-lg)] py-3.5 text-center text-sm font-semibold text-white transition-all hover:shadow-[0_4px_12px_rgba(102,126,234,0.3)] hover:scale-[1.02] active:scale-[0.98]"
                                             style={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}
                                         >
-                                            <i className="bx bx-log-in text-lg" />
+                                            <BoxIcon className="bx bx-log-in text-lg" />
                                             Sign up free to book
                                         </Link>
                                     ) : null}

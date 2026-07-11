@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { loadGoogleMaps } from "@/lib/google-maps";
+import { BoxIcon } from "@/components/ui/BoxIcon";
 
 interface ServiceRadiusMapProps {
     lat: number | null;
@@ -159,7 +160,7 @@ export default function ServiceRadiusMap({
     if (!hasLocation) {
         return (
             <div className="rounded-[var(--radius-xl)] border border-dashed border-border bg-bg-secondary p-8 text-center">
-                <i className="bx bx-map text-3xl text-text-tertiary mb-2 block" />
+                <BoxIcon className="bx bx-map text-3xl text-text-tertiary mb-2 block" />
                 <p className="text-sm font-medium text-text-primary mb-1">
                     No location set
                 </p>
@@ -187,7 +188,7 @@ export default function ServiceRadiusMap({
     if (mapError) {
         return (
             <div className="rounded-[var(--radius-xl)] border border-border bg-bg-secondary p-8 text-center">
-                <i className="bx bx-map text-3xl text-text-tertiary mb-2 block" />
+                <BoxIcon className="bx bx-map text-3xl text-text-tertiary mb-2 block" />
                 <p className="text-sm text-text-secondary">Map unavailable</p>
             </div>
         );
@@ -201,7 +202,7 @@ export default function ServiceRadiusMap({
             ) : (
                 <div className="w-full h-[260px] md:h-[320px] bg-bg-secondary animate-pulse flex items-center justify-center">
                     <div className="text-center">
-                        <i className="bx bx-map text-2xl text-text-tertiary mb-1 block" />
+                        <BoxIcon className="bx bx-map text-2xl text-text-tertiary mb-1 block" />
                         <span className="text-xs text-text-tertiary">Loading map…</span>
                     </div>
                 </div>
@@ -218,7 +219,7 @@ export default function ServiceRadiusMap({
                     />
                 ) : (
                     <div className="flex items-center gap-2">
-                        <i className="bx bx-target-lock text-accent text-sm" />
+                        <BoxIcon className="bx bx-target-lock text-accent text-sm" />
                         <span className="text-xs text-text-secondary">
                             Service area: {normalizedRadiusKm} km radius
                         </span>
@@ -251,7 +252,7 @@ function SliderUI({
         <div>
             <div className="flex items-center justify-between mb-2">
                 <label htmlFor="service-radius-slider" className="text-xs font-semibold text-text-primary flex items-center gap-1.5">
-                    <i className="bx bx-target-lock text-accent text-sm" />
+                    <BoxIcon className="bx bx-target-lock text-accent text-sm" />
                     Service Radius
                 </label>
                 <span className="text-sm font-bold text-accent tabular-nums">

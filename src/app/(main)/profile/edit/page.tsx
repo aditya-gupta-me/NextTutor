@@ -8,6 +8,7 @@ import InlineAlert from "@/components/ui/InlineAlert";
 import AvatarUpload from "@/components/ui/AvatarUpload";
 import { useToast } from "@/components/ui/ToastContext";
 import ServiceRadiusMap from "@/components/ui/ServiceRadiusMap";
+import { BoxIcon } from "@/components/ui/BoxIcon";
 
 export default function ProfileEditPage() {
     const router = useRouter();
@@ -722,11 +723,11 @@ export default function ProfileEditPage() {
                                 >
                                     {saving ? (
                                         <>
-                                            <i className="bx bx-loader-alt animate-spin" /> Saving...
+                                            <BoxIcon className="bx bx-loader-alt animate-spin" /> Saving...
                                         </>
                                     ) : (
                                         <>
-                                            <i className="bx bx-save" /> {isOnboarding ? "Save & Continue" : "Save Changes"}
+                                            <BoxIcon className="bx bx-save" /> {isOnboarding ? "Save & Continue" : "Save Changes"}
                                         </>
                                     )}
                                 </button>
@@ -781,7 +782,7 @@ export default function ProfileEditPage() {
                                     )}
                                 </label>
                                 <div className="relative">
-                                    <i className="bx bx-envelope absolute left-3 top-1/2 -translate-y-1/2 text-lg text-text-tertiary pointer-events-none" />
+                                    <BoxIcon className="bx bx-envelope absolute left-3 top-1/2 -translate-y-1/2 text-lg text-text-tertiary pointer-events-none" />
                                     <input
                                         type="email"
                                         value={userEmail}
@@ -804,7 +805,7 @@ export default function ProfileEditPage() {
                         {showEmailChange && !emailChangeSent && (
                             <div className="rounded-xl border border-accent/20 bg-accent-light/40 p-4 space-y-3 animate-in fade-in slide-in-from-top-1 duration-200">
                                 <div className="flex items-center gap-2">
-                                    <i className="bx bx-envelope text-accent" />
+                                    <BoxIcon className="bx bx-envelope text-accent" />
                                     <span className="text-sm font-semibold text-text-primary">Change Email Address</span>
                                 </div>
                                 <p className="text-xs text-text-secondary leading-relaxed">
@@ -848,9 +849,9 @@ export default function ProfileEditPage() {
                                         className="shrink-0 inline-flex items-center gap-1.5 rounded-[var(--radius-md)] bg-accent px-4 py-2 text-sm font-medium text-white transition-base hover:bg-accent-hover disabled:opacity-50 cursor-pointer"
                                     >
                                         {emailChangeSending ? (
-                                            <><i className="bx bx-loader-alt animate-spin" /> Sending...</>
+                                            <><BoxIcon className="bx bx-loader-alt animate-spin" /> Sending...</>
                                         ) : (
-                                            <><i className="bx bx-send" /> Send</>
+                                            <><BoxIcon className="bx bx-send" /> Send</>
                                         )}
                                     </button>
                                     <button
@@ -868,7 +869,7 @@ export default function ProfileEditPage() {
                         {emailChangeSent && (
                             <div className="rounded-xl border border-green-200 bg-green-50 p-4 space-y-2">
                                 <div className="flex items-center gap-2">
-                                    <i className="bx bx-check-circle text-green-600 text-lg" />
+                                    <BoxIcon className="bx bx-check-circle text-green-600 text-lg" />
                                     <span className="text-sm font-semibold text-green-800">Confirmation links sent</span>
                                 </div>
                                 <p className="text-xs text-green-700 leading-relaxed">
@@ -886,7 +887,7 @@ export default function ProfileEditPage() {
                         )}
 
                         <p className="text-[11px] text-text-tertiary flex items-center gap-1 -mt-1">
-                            <i className="bx bx-lock-alt" /> Phone is linked to your login method. Email can be changed via verification.
+                            <BoxIcon className="bx bx-lock-alt" /> Phone is linked to your login method. Email can be changed via verification.
                         </p>
                         <FormField label="Gender" icon="bx-universal-access">
                             <select
@@ -920,7 +921,7 @@ export default function ProfileEditPage() {
                                                     : "border-border bg-bg-secondary text-text-secondary hover:bg-bg-tertiary"
                                                     }`}
                                             >
-                                                {subjects.includes(s) && <i className="bx bx-check mr-1" />}
+                                                {subjects.includes(s) && <BoxIcon className="bx bx-check mr-1" />}
                                                 {s}
                                             </button>
                                         ))}
@@ -997,7 +998,7 @@ export default function ProfileEditPage() {
                                     disabled={useMyLocationLoading || locationCooldown}
                                     className="w-full flex items-center justify-center gap-2 rounded-[var(--radius-lg)] border border-accent/20 bg-accent/5 px-4 py-3 text-sm font-medium text-accent transition-all hover:bg-accent/10 cursor-pointer disabled:opacity-50 disabled:cursor-wait"
                                 >
-                                    <i className={`bx ${useMyLocationLoading ? 'bx-loader-alt animate-spin' : 'bx-current-location'} text-lg`} />
+                                    <BoxIcon className={`bx ${useMyLocationLoading ? 'bx-loader-alt animate-spin' : 'bx-current-location'} text-lg`} />
                                     {useMyLocationLoading ? 'Detecting location...' : 'Use My Location'}
                                 </button>
                                 <FormField label="Address" icon="bx-home">
@@ -1011,7 +1012,7 @@ export default function ProfileEditPage() {
                                         id="address-autocomplete"
                                     />
                                     <p className="text-[10px] text-text-tertiary mt-1 flex items-center gap-1">
-                                        <i className="bx bx-search-alt" /> Powered by Google Places
+                                        <BoxIcon className="bx bx-search-alt" /> Powered by Google Places
                                     </p>
                                 </FormField>
                                 <div className="grid grid-cols-2 gap-4">
@@ -1158,7 +1159,7 @@ export default function ProfileEditPage() {
                                                     : "border-border bg-bg-secondary text-text-secondary hover:bg-bg-tertiary"
                                                     }`}
                                             >
-                                                {subjectsInterested.includes(s) && <i className="bx bx-check mr-1" />}
+                                                {subjectsInterested.includes(s) && <BoxIcon className="bx bx-check mr-1" />}
                                                 {s}
                                             </button>
                                         ))}
@@ -1175,7 +1176,7 @@ export default function ProfileEditPage() {
                                             disabled={useMyLocationLoading || locationCooldown}
                                             className="w-full flex items-center justify-center gap-2 rounded-[var(--radius-lg)] border border-accent/20 bg-accent/5 px-4 py-3 text-sm font-medium text-accent transition-all hover:bg-accent/10 cursor-pointer disabled:opacity-50 disabled:cursor-wait"
                                         >
-                                            <i className={`bx ${useMyLocationLoading ? 'bx-loader-alt animate-spin' : 'bx-current-location'} text-lg`} />
+                                            <BoxIcon className={`bx ${useMyLocationLoading ? 'bx-loader-alt animate-spin' : 'bx-current-location'} text-lg`} />
                                             {useMyLocationLoading ? 'Detecting location...' : 'Use My Location'}
                                         </button>
                                         <FormField label="Address" icon="bx-home">
@@ -1189,7 +1190,7 @@ export default function ProfileEditPage() {
                                                 id="student-address-autocomplete"
                                             />
                                             <p className="text-[10px] text-text-tertiary mt-1 flex items-center gap-1">
-                                                <i className="bx bx-search-alt" /> Powered by Google Places
+                                                <BoxIcon className="bx bx-search-alt" /> Powered by Google Places
                                             </p>
                                         </FormField>
                                         <div className="grid grid-cols-3 gap-4">
@@ -1297,7 +1298,7 @@ function ProfileSection({
     return (
         <section className="rounded-[var(--radius-xl)] border border-border bg-bg-white p-6 mb-5 transition-base hover:shadow-[var(--shadow-sm)]">
             <h2 className="flex items-center gap-2.5 text-base font-semibold text-text-primary mb-6 pb-3 border-b border-border">
-                <i className={`bx ${icon} text-lg text-accent`} />
+                <BoxIcon className={`bx ${icon} text-lg text-accent`} />
                 {title}
             </h2>
             {children}
@@ -1324,7 +1325,7 @@ function FormField({
             </label>
             <div className="relative">
                 {icon && (
-                    <i className={`bx ${icon} absolute left-3 top-1/2 -translate-y-1/2 text-lg text-text-tertiary pointer-events-none`} />
+                    <BoxIcon className={`bx ${icon} absolute left-3 top-1/2 -translate-y-1/2 text-lg text-text-tertiary pointer-events-none`} />
                 )}
                 {children}
             </div>
@@ -1353,7 +1354,7 @@ function OnboardingProgress({
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                    <i className="bx bx-rocket text-lg text-accent" />
+                    <BoxIcon className="bx bx-rocket text-lg text-accent" />
                     <span className="text-sm font-semibold text-text-primary">
                         Getting Started
                     </span>
@@ -1382,7 +1383,7 @@ function OnboardingProgress({
                                 : "bg-bg-secondary text-text-tertiary border border-transparent"
                         }`}
                     >
-                        <i className={`bx ${step.done ? "bx-check-circle text-green-500" : step.icon + " text-text-tertiary"} text-base`} />
+                        <BoxIcon className={`bx ${step.done ? "bx-check-circle text-green-500" : step.icon + " text-text-tertiary"} text-base`} />
                         {step.label}
                     </div>
                 ))}

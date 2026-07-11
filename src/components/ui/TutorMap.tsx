@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { loadGoogleMaps } from "@/lib/google-maps";
+import { BoxIcon } from "@/components/ui/BoxIcon";
 
 interface TutorMapProps {
     lat: number;
@@ -102,7 +103,7 @@ export default function TutorMap({ lat, lng, radiusKm, tutorName }: TutorMapProp
     if (mapError) {
         return (
             <div className="rounded-[var(--radius-xl)] border border-border bg-bg-secondary p-8 text-center">
-                <i className="bx bx-map text-3xl text-text-tertiary mb-2" />
+                <BoxIcon className="bx bx-map text-3xl text-text-tertiary mb-2" />
                 <p className="text-sm text-text-secondary">Map unavailable</p>
             </div>
         );
@@ -116,13 +117,13 @@ export default function TutorMap({ lat, lng, radiusKm, tutorName }: TutorMapProp
                 /* Placeholder skeleton shown until component enters viewport */
                 <div className="w-full h-[300px] md:h-[360px] bg-bg-secondary animate-pulse flex items-center justify-center">
                     <div className="text-center">
-                        <i className="bx bx-map text-2xl text-text-tertiary mb-1 block" />
+                        <BoxIcon className="bx bx-map text-2xl text-text-tertiary mb-1 block" />
                         <span className="text-xs text-text-tertiary">Loading map…</span>
                     </div>
                 </div>
             )}
             <div className="bg-bg-white px-4 py-2.5 border-t border-border flex items-center gap-2">
-                <i className="bx bx-target-lock text-accent text-sm" />
+                <BoxIcon className="bx bx-target-lock text-accent text-sm" />
                 <span className="text-xs text-text-secondary">
                     Service area: {radiusKm} km radius
                 </span>
