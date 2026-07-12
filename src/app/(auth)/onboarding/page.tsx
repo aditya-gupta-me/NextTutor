@@ -76,7 +76,6 @@ export default function OnboardingPage() {
                 {
                     id: user.id,
                     email: user.email ?? null,
-                    phone: user.phone ?? null,
                     full_name: fullName.trim(),
                     role,
                 },
