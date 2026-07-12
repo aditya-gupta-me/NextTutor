@@ -1,70 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import InlineAlert from "@/components/ui/InlineAlert";
 
-type AuthMethod = "phone" | "email";
-
 export default function ContinuePage() {
-    const router = useRouter();
-    const [method, setMethod] = useState<AuthMethod>("email");
-    const [phone, setPhone] = useState("");
     const [email, setEmail] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [emailSent, setEmailSent] = useState(false);
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError("");
-        setLoading(true);
-
-        try {
-            const supabase = createClient();
-
-            if (method === "phone") {
-                const formattedPhone = phone.startsWith("+91")
-                    ? phone
-                    : `+91${phone.replace(/\D/g, "")}`;
-
-                if (phone.replace(/\D/g, "").length !== 10) {
-                    throw new Error("Please enter a valid 10-digit phone number.");
-                }
-
-                const { error: authError } = await supabase.auth.signInWithOtp({
-                    phone: formattedPhone,
-                });
-                if (authError) throw authError;
-
-                // Store context for OTP page
-                sessionStorage.setItem(
-                    "tsearch_auth",
-                    JSON.stringify({ method: "phone", phone: formattedPhone }),
-                );
-                router.push("/verify-otp");
-            } else {
-                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                    throw new Error("Please enter a valid email address.");
-                }
-
-                const { error: authError } = await supabase.auth.signInWithOtp({
-                    email,
-                    options: {
-                        emailRedirectTo: `${window.location.origin}/auth/callback`,
-                    },
-                });
-                if (authError) throw authError;
-                setEmailSent(true);
-                startCooldown();
-            }
-        } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : "Something went wrong");
-        } finally {
-            setLoading(false);
-        }
-    };
 
     // Cooldown timer — synced with Supabase's SMTP minimum interval (60s)
     const [resendCooldown, setResendCooldown] = useState(0);
@@ -77,6 +21,34 @@ export default function ContinuePage() {
                 return prev - 1;
             });
         }, 1000);
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError("");
+        setLoading(true);
+
+        try {
+            const supabase = createClient();
+
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                throw new Error("Please enter a valid email address.");
+            }
+
+            const { error: authError } = await supabase.auth.signInWithOtp({
+                email,
+                options: {
+                    emailRedirectTo: `${window.location.origin}/auth/callback`,
+                },
+            });
+            if (authError) throw authError;
+            setEmailSent(true);
+            startCooldown();
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "Something went wrong");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleResend = async () => {
@@ -140,95 +112,38 @@ export default function ContinuePage() {
     }
 
     return (
-        <div>
+        <div className="flex flex-col">
             {/* Header */}
             <div className="mb-8">
                 <h1 className="font-serif text-3xl font-bold text-text-primary">
                     Welcome to NextTutor
                 </h1>
                 <p className="mt-2 text-text-secondary">
-                    Enter your email or phone to continue. We&apos;ll create your account if
+                    Enter your email to continue. We&apos;ll create your account if
                     you&apos;re new.
                 </p>
             </div>
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Auth method toggle */}
-                <div>
-                    <label className="text-sm font-medium text-text-primary mb-1.5 block">
-                        Continue with
-                    </label>
-                    <div className="flex rounded-[var(--radius-md)] border border-border bg-bg-secondary p-0.5">
-                        <button
-                            type="button"
-                            onClick={() => setMethod("email")}
-                            className={`flex-1 rounded-[var(--radius-sm)] py-2 text-xs font-medium transition-base ${
-                                method === "email"
-                                    ? "bg-bg-white text-text-primary shadow-[var(--shadow-xs)]"
-                                    : "text-text-secondary hover:text-text-primary"
-                            }`}
-                        >
-                            ✉️ Email
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setMethod("phone")}
-                            className={`flex-1 rounded-[var(--radius-sm)] py-2 text-xs font-medium transition-base ${
-                                method === "phone"
-                                    ? "bg-bg-white text-text-primary shadow-[var(--shadow-xs)]"
-                                    : "text-text-secondary hover:text-text-primary"
-                            }`}
-                        >
-                            📱 Phone
-                        </button>
-                    </div>
-                </div>
-
                 {/* Input */}
-                {method === "email" ? (
-                    <div>
-                        <label
-                            htmlFor="email"
-                            className="text-sm font-medium text-text-primary mb-1.5 block"
-                        >
-                            Email address
-                        </label>
-                        <input
-                            id="email"
-                            type="email"
-                            required
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="you@example.com"
-                            className="w-full rounded-[var(--radius-md)] border border-border bg-bg-white px-4 py-3 text-sm text-text-primary placeholder:text-text-tertiary outline-none transition-base focus:border-accent focus:shadow-[0_0_0_3px_rgba(47,128,237,0.1)]"
-                        />
-                    </div>
-                ) : (
-                    <div>
-                        <label
-                            htmlFor="phone"
-                            className="text-sm font-medium text-text-primary mb-1.5 block"
-                        >
-                            Phone number
-                        </label>
-                        <div className="flex items-center gap-2">
-                            <span className="flex h-[46px] items-center rounded-[var(--radius-md)] border border-border bg-bg-secondary px-3 text-sm text-text-secondary">
-                                +91
-                            </span>
-                            <input
-                                id="phone"
-                                type="tel"
-                                required
-                                value={phone}
-                                onChange={(e) => setPhone(e.target.value)}
-                                placeholder="98765 43210"
-                                maxLength={10}
-                                className="flex-1 rounded-[var(--radius-md)] border border-border bg-bg-white px-4 py-3 text-sm text-text-primary placeholder:text-text-tertiary outline-none transition-base focus:border-accent focus:shadow-[0_0_0_3px_rgba(47,128,237,0.1)]"
-                            />
-                        </div>
-                    </div>
-                )}
+                <div>
+                    <label
+                        htmlFor="email"
+                        className="text-sm font-medium text-text-primary mb-1.5 block"
+                    >
+                        Email address
+                    </label>
+                    <input
+                        id="email"
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="you@example.com"
+                        className="w-full rounded-[var(--radius-md)] border border-border bg-bg-white px-4 py-3 text-sm text-text-primary placeholder:text-text-tertiary outline-none transition-base focus:border-accent focus:shadow-[0_0_0_3px_rgba(47,128,237,0.1)]"
+                    />
+                </div>
 
                 {/* Error */}
                 {error && <InlineAlert variant="error" message={error} dismissible />}
@@ -237,7 +152,7 @@ export default function ContinuePage() {
                 <button
                     type="submit"
                     disabled={loading}
-                    className="w-full rounded-[var(--radius-md)] bg-accent py-3 text-sm font-medium text-white transition-base hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full rounded-[var(--radius-md)] bg-accent py-3 text-sm font-medium text-white transition-base hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                     {loading ? "Sending..." : "Continue →"}
                 </button>
