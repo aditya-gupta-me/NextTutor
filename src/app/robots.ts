@@ -36,6 +36,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/dashboard', '/profile/edit', '/settings', '/api/'],
       },
     ],
-    sitemap: 'https://nexttutor.in/sitemap.xml',
+    sitemap: 'https://www.nexttutor.app/sitemap.xml',
   }
 }

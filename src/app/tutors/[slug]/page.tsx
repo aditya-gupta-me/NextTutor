@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         openGraph: {
             title,
             description,
-            url: `https://nexttutor.in/tutors/${slug}`,
+            url: `https://www.nexttutor.app/tutors/${slug}`,
             siteName: 'NextTutor',
             images: [
                 {
@@ -183,7 +183,7 @@ export default async function TutorProfilePage({ params }: PageProps) {
         '@context': 'https://schema.org',
         '@type': 'Person',
         name: user.full_name,
-        url: `https://nexttutor.in/tutors/${slug}`,
+        url: `https://www.nexttutor.app/tutors/${slug}`,
         image: user.avatar_url,
         jobTitle: `${subjects.join(" · ")} Tutor`,
         address: {

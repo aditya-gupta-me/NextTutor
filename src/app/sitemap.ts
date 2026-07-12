@@ -17,7 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
     
     return {
-      url: `https://nexttutor.in/tutors/${t.slug}`,
+      url: `https://www.nexttutor.app/tutors/${t.slug}`,
       lastModified,
       changeFrequency: 'weekly' as const,
       priority: 0.8,
@@ -25,10 +25,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   })
 
   return [
-    { url: 'https://nexttutor.in', lastModified: new Date(), priority: 1.0 },
-    { url: 'https://nexttutor.in/tutors', lastModified: new Date(), priority: 0.9 },
-    { url: 'https://nexttutor.in/about', lastModified: new Date(), priority: 0.5 },
-    { url: 'https://nexttutor.in/faqs', lastModified: new Date(), priority: 0.5 },
+    { url: 'https://www.nexttutor.app', lastModified: new Date(), priority: 1.0 },
+    { url: 'https://www.nexttutor.app/tutors', lastModified: new Date(), priority: 0.9 },
+    { url: 'https://www.nexttutor.app/about', lastModified: new Date(), priority: 0.5 },
+    { url: 'https://www.nexttutor.app/faqs', lastModified: new Date(), priority: 0.5 },
     ...tutorUrls,
   ]
 }
