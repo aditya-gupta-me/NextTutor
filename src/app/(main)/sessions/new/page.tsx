@@ -235,7 +235,7 @@ export default function NewSessionPage() {
                                 <Image src={tutor.user.avatar_url}
                                     alt={tutor.user.full_name}
                                     className="h-full w-full rounded-full object-cover"
-                                 width={40} height={40} />
+                                 width={56} height={56} />
                             ) : (
                                 <span>{initials}</span>
                             )}

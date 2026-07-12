@@ -59,19 +59,26 @@ const iconMap: Record<string, React.ElementType> = {
 
 export function BoxIcon({ className, ...props }: { className?: string } & React.HTMLAttributes<HTMLElement>) {
   if (!className) return <i className={className} {...props} />;
-  
+
   // Extract the bx-* class to identify the icon
   const classes = className.split(' ').map(c => c.trim()).filter(Boolean);
   const iconName = classes.find(c => c.startsWith('bx-'));
-  
+
   // Remove 'bx' and 'bx-*' from the className to pass to the SVG
   const remainingClasses = classes.filter(c => c !== 'bx' && !c.startsWith('bx-')).join(' ');
-  
+
   if (!iconName || !iconMap[iconName]) {
     // Fallback if icon is missing or not mapped
     return <i className={className} {...props} />;
   }
-  
+
   const IconComponent = iconMap[iconName];
-  return <IconComponent className={remainingClasses || undefined} {...props} />;
+  // Default to 1em sizing so icons scale with text-size classes (text-xs, text-sm, etc.)
+  // Only apply if width/height aren't explicitly provided by the caller
+  const iconProps = {
+    className: remainingClasses || undefined,
+    ...props,
+    ...((!('width' in props) && !('height' in props)) && { width: '1em', height: '1em' })
+  };
+  return <IconComponent {...iconProps} />;
 }

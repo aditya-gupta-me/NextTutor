@@ -20,8 +20,17 @@ const lora = Lora({
 
 export const metadata: Metadata = {
     metadataBase: new URL(
-        process.env.NEXT_PUBLIC_SITE_URL || 
-        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
+        (() => {
+            const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+            if (siteUrl) {
+                return siteUrl.startsWith('http://') || siteUrl.startsWith('https://')
+                    ? siteUrl
+                    : `https://${siteUrl}`;
+            }
+            return process.env.VERCEL_URL
+                ? `https://${process.env.VERCEL_URL}`
+                : "http://localhost:3000";
+        })()
     ),
     title: "NextTutor — Find Trusted Tutors Near You",
     description:

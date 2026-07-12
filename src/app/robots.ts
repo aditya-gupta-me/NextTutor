@@ -33,6 +33,7 @@ export default function robots(): MetadataRoute.Robots {
       // Block all crawlers from authenticated/internal routes
       {
         userAgent: '*',
+        allow: ['/api/og/'],
         disallow: ['/dashboard', '/profile/edit', '/settings', '/api/'],
       },
     ],

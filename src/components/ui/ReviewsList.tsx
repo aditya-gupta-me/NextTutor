@@ -188,7 +188,7 @@ function ReviewCard({
                     : "bg-bg-secondary text-text-tertiary border border-transparent hover:bg-bg-secondary hover:text-text-secondary"
                     }`}
             >
-                <BoxIcon className={`bx ${liked ? "bx-like" : "bx-like"} text-sm`} />
+                <BoxIcon className={`bx ${liked ? "bxs-like" : "bx-like"} text-sm`} />
                 {helpfulCount > 0 ? `Helpful (${helpfulCount})` : "Helpful"}
             </button>
         </div>

@@ -32,17 +32,23 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
                  {user.full_name.charAt(0)}
              </div>
         )}
-        
+
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div style={{ fontSize: 52, fontWeight: 700 }}>{user.full_name}</div>
           <div style={{ fontSize: 28, color: '#555' }}>{subjectsStr} Tutor · {tutor.city}</div>
           <div style={{ fontSize: 24, color: '#f59e0b' }}>
-              {tutor.avg_rating > 0 ? `{'★'.repeat(Math.round(tutor.avg_rating))} ${tutor.avg_rating.toFixed(1)} (${tutor.review_count} reviews)` : 'New Tutor'}
+              {tutor.avg_rating > 0 ? `${'★'.repeat(Math.round(tutor.avg_rating))} ${tutor.avg_rating.toFixed(1)} (${tutor.review_count} reviews)` : 'New Tutor'}
           </div>
           <div style={{ fontSize: 20, color: '#888' }}>www.nexttutor.app</div>
         </div>
       </div>
     ),
-    { width: 1200, height: 630 }
+    {
+      width: 1200,
+      height: 630,
+      headers: {
+        'Cache-Control': 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800',
+      },
+    }
   )
 }
