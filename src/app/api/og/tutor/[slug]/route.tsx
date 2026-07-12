@@ -39,7 +39,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
           <div style={{ fontSize: 24, color: '#f59e0b' }}>
               {tutor.avg_rating > 0 ? `${'★'.repeat(Math.round(tutor.avg_rating))} ${tutor.avg_rating.toFixed(1)} (${tutor.review_count} reviews)` : 'New Tutor'}
           </div>
-          <div style={{ fontSize: 20, color: '#888' }}>nexttutor.in</div>
+          <div style={{ fontSize: 20, color: '#888' }}>www.nexttutor.app</div>
         </div>
       </div>
     ),
