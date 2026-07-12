@@ -5,9 +5,18 @@ import { useRouter } from "next/navigation";
 export default function GoBackButton({ className }: { className?: string }) {
     const router = useRouter();
 
+    const handleClick = () => {
+        if (window.history.length > 1 && document.referrer) {
+            router.back();
+        } else {
+            router.push("/");
+        }
+    };
+
     return (
         <button
-            onClick={() => router.back()}
+            type="button"
+            onClick={handleClick}
             className={className}
             aria-label="Go back to the previous page"
         >
