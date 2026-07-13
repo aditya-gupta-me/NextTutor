@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import InlineAlert from "@/components/ui/InlineAlert";
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function ContinuePage() {
     const [email, setEmail] = useState("");
@@ -10,18 +12,39 @@ export default function ContinuePage() {
     const [error, setError] = useState("");
     const [emailSent, setEmailSent] = useState(false);
 
+    // Read URL error parameter on mount
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("error") === "auth_callback_failed") {
+            setError("Your sign-in link expired or is invalid. Please try again.");
+        }
+    }, []);
+
     // Cooldown timer — synced with Supabase's SMTP minimum interval (60s)
     const [resendCooldown, setResendCooldown] = useState(0);
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
 
     const startCooldown = () => {
+        if (timerRef.current) clearInterval(timerRef.current);
+        
         setResendCooldown(60);
-        const timer = setInterval(() => {
+        timerRef.current = setInterval(() => {
             setResendCooldown((prev) => {
-                if (prev <= 1) { clearInterval(timer); return 0; }
+                if (prev <= 1) { 
+                    if (timerRef.current) clearInterval(timerRef.current);
+                    return 0; 
+                }
                 return prev - 1;
             });
         }, 1000);
     };
+
+    // Cleanup timer on unmount
+    useEffect(() => {
+        return () => {
+            if (timerRef.current) clearInterval(timerRef.current);
+        };
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -31,7 +54,7 @@ export default function ContinuePage() {
         try {
             const supabase = createClient();
 
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            if (!EMAIL_REGEX.test(email)) {
                 throw new Error("Please enter a valid email address.");
             }
 
@@ -52,7 +75,6 @@ export default function ContinuePage() {
     };
 
     const handleResend = async () => {
-        startCooldown();
         setError("");
 
         try {
@@ -64,6 +86,8 @@ export default function ContinuePage() {
                 },
             });
             if (authError) throw authError;
+            
+            startCooldown();
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : "Failed to resend email.");
         }
