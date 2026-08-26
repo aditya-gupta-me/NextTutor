@@ -5,7 +5,6 @@ import { createClient } from "@/lib/supabase/server";
 import {
     HeroProductPreview,
     TutorProfilePreview,
-    SessionPreview,
 } from "@/components/illustrations/Illustrations";
 
 export default async function Home() {

@@ -120,8 +120,9 @@ describe("AvatarUpload", () => {
             />
         );
 
-        const img = screen.getByAltText("Priya Sharma") as HTMLImageElement;
-        expect(img.src).toBe("https://example.com/photo.jpg");
+        const img = screen.getByAltText("Priya Sharma profile photo") as HTMLImageElement;
+        expect(img).toBeInTheDocument();
+        expect(img.src).toContain("https%3A%2F%2Fexample.com%2Fphoto.jpg");
     });
 
     it("shows remove button only when a photo exists", () => {

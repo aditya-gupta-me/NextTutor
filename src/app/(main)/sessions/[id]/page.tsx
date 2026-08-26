@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useTransition, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
@@ -54,7 +53,6 @@ const STATUS_CONFIG: Record<string, { gradient: string; icon: string; label: str
 const STAR_LABELS = ["", "Poor", "Below Average", "Average", "Good", "Excellent"];
 
 export default function SessionDetailPage({ params }: { params: Promise<{ id: string }> }) {
-    const router = useRouter();
     const supabase = createClient();
     const toast = useToast();
     const [loading, setLoading] = useState(true);
@@ -70,13 +68,6 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
     const [reviewComment, setReviewComment] = useState("");
     const [reviewSubmitting, setReviewSubmitting] = useState(false);
     const [reviewError, setReviewError] = useState("");
-
-    useEffect(() => {
-        params.then((p) => {
-            setSessionId(p.id);
-            loadSession(p.id);
-        });
-    }, [params]);
 
     const loadSession = useCallback(async (id: string) => {
         try {
@@ -168,6 +159,13 @@ export default function SessionDetailPage({ params }: { params: Promise<{ id: st
             setLoading(false);
         }
     }, [supabase]);
+
+    useEffect(() => {
+        params.then((p) => {
+            setSessionId(p.id);
+            loadSession(p.id);
+        });
+    }, [params, loadSession]);
 
     const handleAction = (action: (id: string) => Promise<{ success: boolean }>, label: string) => {
         startTransition(async () => {

@@ -131,7 +131,7 @@ export default function ServiceRadiusMap({
         return () => {
             cancelled = true;
         };
-    }, [isVisible, lat, lng]); // Re-init when visibility changes or coordinates change
+    }, [editable, isVisible, lat, lng, normalizedRadiusKm, tutorName]); // Re-init when visibility changes or coordinates change
 
     // Update circle radius when radiusKm changes (without re-creating map)
     useEffect(() => {

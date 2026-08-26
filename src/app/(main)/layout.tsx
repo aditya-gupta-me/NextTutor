@@ -14,7 +14,6 @@ import {
     CreditCardAlt,
     Cog,
 } from "@boxicons/react";
-import type { ReactNode } from "react";
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
     const supabase = await createClient();

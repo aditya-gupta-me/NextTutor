@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import Navbar from "@/components/ui/Navbar";
 import Footer from "@/components/ui/Footer";
-import { SUBJECTS, DISTANCE_OPTIONS } from "@/lib/constants";
+import { SUBJECTS } from "@/lib/constants";
 import { BoxIcon } from "@/components/ui/BoxIcon";
 import Image from "next/image";
 
@@ -53,11 +53,7 @@ export default function TutorSearchPage() {
         });
     }, []);
 
-    useEffect(() => {
-        fetchTutors();
-    }, [filterVerified, sortBy, userLat, userLng]);
-
-    const fetchTutors = async () => {
+    const fetchTutors = useCallback(async () => {
         setLoading(true);
         const supabase = createClient();
 
@@ -125,7 +121,11 @@ export default function TutorSearchPage() {
         const { data } = await query.limit(50);
         setTutors((data as unknown as TutorResult[]) || []);
         setLoading(false);
-    };
+    }, [filterVerified, sortBy, userLat, userLng]);
+
+    useEffect(() => {
+        fetchTutors();
+    }, [fetchTutors]);
 
     const handleUseMyLocation = () => {
         if (locationCooldown || locating) return;

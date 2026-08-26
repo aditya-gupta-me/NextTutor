@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export type ToastVariant = "success" | "error" | "warning" | "info";
 
@@ -59,13 +59,23 @@ function ToastItem({
     const duration = toast.duration ?? 4000;
     const [exiting, setExiting] = useState(false);
     const [progress, setProgress] = useState(100);
-    const startRef = useRef(Date.now());
+    const startRef = useRef<number | null>(null);
     const rafRef = useRef<number>(0);
+
+    const dismiss = useCallback(() => {
+        setExiting(true);
+        setTimeout(() => onDismiss(toast.id), 280);
+    }, [onDismiss, toast.id]);
 
     // Countdown progress bar
     useEffect(() => {
+        if (startRef.current === null) {
+            startRef.current = Date.now();
+        }
+
         const tick = () => {
-            const elapsed = Date.now() - startRef.current;
+            const start = startRef.current ?? Date.now();
+            const elapsed = Date.now() - start;
             const remaining = Math.max(0, 100 - (elapsed / duration) * 100);
             setProgress(remaining);
 
@@ -77,12 +87,7 @@ function ToastItem({
         };
         rafRef.current = requestAnimationFrame(tick);
         return () => cancelAnimationFrame(rafRef.current);
-    }, [duration]);
-
-    const dismiss = () => {
-        setExiting(true);
-        setTimeout(() => onDismiss(toast.id), 280);
-    };
+    }, [dismiss, duration]);
 
     return (
         <div

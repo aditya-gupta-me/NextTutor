@@ -232,10 +232,13 @@ Prefer semantic queries when possible — they catch accessibility issues for fr
 
 | Module | Tests | What's covered |
 |---|---|---|
-| `AvatarUpload` | 9 | Rendering, file validation, upload flow, removal, error handling |
-| `profanity` | 12 | Clean text, English/Hindi/leet-speak detection, custom terms, sanitization, severity, false-positive safety, validation policy |
-
-This table should be updated as new test files are added.
+| `AvatarUpload` (`src/components/ui/__tests__/AvatarUpload.test.tsx`) | 10 | Rendering, file validation, upload flow, Azure moderation integration, removal, error handling |
+| `ViewTracker` (`src/components/ui/__tests__/ViewTracker.test.tsx`) | 5 | Intersection observer tracking, session deduplication, beacon dispatch |
+| `image-moderation` (`src/lib/__tests__/image-moderation.test.ts`) | 14 | Azure Content Safety category analysis, severity thresholds, error fallbacks |
+| `profanity` (`src/lib/__tests__/profanity.test.ts`) | 6 | Google Perspective API toxicity analysis, score thresholds, fail-open resilience |
+| `analytics` (`src/app/api/analytics/__tests__/route.test.ts`) | 5 | Tutor analytics aggregation, date filtering, authentication gating |
+| `track-view` (`src/app/api/track-view/__tests__/route.test.ts`) | 5 | Profile view ingestion, deduplication, payload validation |
+| `boxicons-migration` (`src/test/boxicons-migration.test.ts`) | 2 | Static analysis verifying zero legacy font-icon tags and pure SVG usage |
 
 ## When to Add Tests
 
@@ -248,20 +251,9 @@ Specifically:
 
 ## CI Integration
 
-When CI is set up, `npm test` will run on every pull request. Target: total test run under **15 seconds**.
+CI runs automatically on every pull request and push to `main` via GitHub Actions (`.github/workflows/ci.yml`), executing linting, unit tests, and production build checks. Total test execution time is under **5 seconds**.
 
-```yaml
-# .github/workflows/test.yml
-name: Tests
-on: [pull_request]
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 18
-      - run: npm ci
-      - run: npm test
+```bash
+# Run tests locally before opening a pull request
+npm test
 ```
