@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import InlineAlert from "@/components/ui/InlineAlert";
@@ -40,26 +40,7 @@ export default function NewSessionPage() {
     const [sessionDate, setSessionDate] = useState("");
     const [message, setMessage] = useState("");
 
-    useEffect(() => {
-        if (!tutorSlug) {
-            setError("No tutor selected. Please go back and choose a tutor.");
-            setLoading(false);
-            return;
-        }
-        loadTutor();
-    }, [tutorSlug]);
-
-    // Auto-fill fee when type changes
-    useEffect(() => {
-        if (!tutor) return;
-        if (feeType === "monthly" && tutor.fee_per_month) {
-            setAgreedFee(tutor.fee_per_month.toString());
-        } else if (feeType === "per_session" && tutor.fee_per_session) {
-            setAgreedFee(tutor.fee_per_session.toString());
-        }
-    }, [feeType, tutor]);
-
-    const loadTutor = async () => {
+    const loadTutor = useCallback(async () => {
         try {
             const { data, error: fetchError } = await supabase
                 .from("tutor_profiles")
@@ -102,7 +83,26 @@ export default function NewSessionPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [supabase, tutorSlug]);
+
+    useEffect(() => {
+        if (!tutorSlug) {
+            setError("No tutor selected. Please go back and choose a tutor.");
+            setLoading(false);
+            return;
+        }
+        loadTutor();
+    }, [tutorSlug, loadTutor]);
+
+    // Auto-fill fee when type changes
+    useEffect(() => {
+        if (!tutor) return;
+        if (feeType === "monthly" && tutor.fee_per_month) {
+            setAgreedFee(tutor.fee_per_month.toString());
+        } else if (feeType === "per_session" && tutor.fee_per_session) {
+            setAgreedFee(tutor.fee_per_session.toString());
+        }
+    }, [feeType, tutor]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

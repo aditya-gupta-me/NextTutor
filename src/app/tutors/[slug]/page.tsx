@@ -64,6 +64,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
 }
 
+function isRecentlyUpdated(createdAt: string): boolean {
+    return (Date.now() - new Date(createdAt).getTime()) < 14 * 24 * 60 * 60 * 1000;
+}
+
 export default async function TutorProfilePage({ params }: PageProps) {
     const { slug } = await params;
     const supabase = await createClient();
@@ -108,9 +112,7 @@ export default async function TutorProfilePage({ params }: PageProps) {
             .limit(1)
             .maybeSingle();
 
-        recentlyUpdated = recentUpdate
-            ? (Date.now() - new Date(recentUpdate.created_at).getTime()) < 14 * 24 * 60 * 60 * 1000
-            : false;
+        recentlyUpdated = recentUpdate ? isRecentlyUpdated(recentUpdate.created_at) : false;
     }
 
     const user = (tutor as unknown as { users: { full_name: string; avatar_url: string | null; email: string; phone: string } }).users;
@@ -195,7 +197,7 @@ export default async function TutorProfilePage({ params }: PageProps) {
             '@type': 'OfferCatalog',
             name: 'Tutoring Services',
             itemListElement: subjects.map((subject) => {
-                const offer: any = {
+                const offer: Record<string, unknown> = {
                     '@type': 'Offer',
                     itemOffered: {
                         '@type': 'Service',
@@ -203,12 +205,15 @@ export default async function TutorProfilePage({ params }: PageProps) {
                     },
                 };
                 if (tutor.avg_rating > 0) {
-                    offer.itemOffered.aggregateRating = {
-                        '@type': 'AggregateRating',
-                        ratingValue: tutor.avg_rating.toFixed(1),
-                        reviewCount: tutor.review_count,
-                        bestRating: '5',
-                        worstRating: '1',
+                    offer.itemOffered = {
+                        ...(offer.itemOffered as Record<string, unknown>),
+                        aggregateRating: {
+                            '@type': 'AggregateRating',
+                            ratingValue: tutor.avg_rating.toFixed(1),
+                            reviewCount: tutor.review_count,
+                            bestRating: '5',
+                            worstRating: '1',
+                        },
                     };
                 }
                 return offer;

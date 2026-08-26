@@ -48,7 +48,7 @@ export default function OnboardingPage() {
             setChecking(false);
         };
         check();
-    }, []);
+    }, [router, supabase]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

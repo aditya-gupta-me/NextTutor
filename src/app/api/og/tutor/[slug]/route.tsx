@@ -26,7 +26,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
     (
       <div style={{ display: 'flex', width: '1200px', height: '630px', background: '#fff', padding: '60px', gap: '40px', alignItems: 'center' }}>
         {user.avatar_url ? (
-            <img src={user.avatar_url} width={200} height={200} style={{ borderRadius: '50%', objectFit: 'cover' }} />
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img src={user.avatar_url} alt={user.full_name || "Tutor avatar"} width={200} height={200} style={{ borderRadius: '50%', objectFit: 'cover' }} />
         ) : (
              <div style={{ display: 'flex', width: '200px', height: '200px', borderRadius: '50%', background: '#f3f4f6', alignItems: 'center', justifyContent: 'center', fontSize: 64, color: '#9ca3af' }}>
                  {user.full_name.charAt(0)}

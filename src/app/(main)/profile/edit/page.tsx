@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { SUBJECTS, FAQ_TEMPLATES } from "@/lib/constants";
@@ -77,10 +77,6 @@ export default function ProfileEditPage() {
 
     // Snapshot of original tutor profile for change detection (analytics events)
     const originalTutorProfile = useRef<Record<string, unknown> | null>(null);
-
-    useEffect(() => {
-        loadProfile();
-    }, []);
 
     // Initialize Google Places Autocomplete on address inputs (both roles)
     useEffect(() => {
@@ -203,7 +199,7 @@ export default function ProfileEditPage() {
         );
     };
 
-    const loadProfile = async () => {
+    const loadProfile = useCallback(async () => {
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
@@ -317,12 +313,16 @@ export default function ProfileEditPage() {
                     }
                 }
             }
-        } catch (err) {
+        } catch {
             setError("Failed to load profile");
         } finally {
             setLoading(false);
         }
-    };
+    }, [supabase]);
+
+    useEffect(() => {
+        loadProfile();
+    }, [loadProfile]);
 
     const validateForm = (): string | null => {
         if (!fullName.trim()) return "Full name is required.";
@@ -911,7 +911,7 @@ export default function ProfileEditPage() {
                             <div className="space-y-5">
                                 <FormField label="Subjects" required>
                                     <div className="flex flex-wrap gap-2">
-                                        {SUBJECTS.map((s, i) => (
+                                        {SUBJECTS.map((s) => (
                                             <button
                                                 key={s}
                                                 type="button"
